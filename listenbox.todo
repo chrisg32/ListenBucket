@@ -39,4 +39,5 @@ Tasks:
   ✔ After the logo is available, set the favicon to the logo @ai @done
     Updated web/index.html to use /logo.png as favicon
     Copied logo to web/public/logo.png
-  ☐ Fix the ListenLater feed image is not the ListenBucket logo or the webpage cannot locate the image @ai @bug
+  ✔ Fix the ListenLater feed image is not the ListenBucket logo or the webpage cannot locate the image @ai @bug @done
+    Updated FeedCard.vue and FeedView.vue to use /logo.png as fallback when image_url is empty

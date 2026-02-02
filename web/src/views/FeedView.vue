@@ -78,16 +78,10 @@ function refreshData() {
     <div class="card p-6 mb-6">
       <div class="flex flex-col sm:flex-row gap-4">
         <img
-          v-if="store.currentFeed.image_url"
-          :src="store.currentFeed.image_url"
+          :src="store.currentFeed.image_url || '/logo.png'"
           :alt="store.currentFeed.title"
           class="w-24 h-24 rounded-lg object-cover flex-shrink-0"
         />
-        <div v-else class="w-24 h-24 rounded-lg bg-primary-100 dark:bg-primary-900 flex items-center justify-center flex-shrink-0">
-          <svg class="w-12 h-12 text-primary-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-          </svg>
-        </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-start justify-between gap-4">
             <div>

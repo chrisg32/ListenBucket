@@ -25,16 +25,10 @@ function formatDate(dateString) {
     class="card p-4 hover:shadow-md transition-shadow flex gap-4 group"
   >
     <img
-      v-if="feed.image_url"
-      :src="feed.image_url"
+      :src="feed.image_url || '/logo.png'"
       :alt="feed.title"
       class="w-20 h-20 rounded-lg object-cover flex-shrink-0"
     />
-    <div v-else class="w-20 h-20 rounded-lg bg-primary-100 dark:bg-primary-900 flex items-center justify-center flex-shrink-0">
-      <svg class="w-10 h-10 text-primary-500" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-      </svg>
-    </div>
 
     <div class="flex-1 min-w-0">
       <div class="flex items-start justify-between gap-2">
