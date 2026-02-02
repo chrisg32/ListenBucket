@@ -1,0 +1,13 @@
+//AI: Do not do any tasks tagged @human
+Tasks:
+  ✔ Fix issue with accessing mp3s from other devices @bug @ai @critical @done
+    RSS feed now dynamically uses request host for audio URLs
+    Frontend uses relative URLs (/api/media/{id}.mp3)
+  ✔ Fix long descriptions make episode/source cards wider than the screen on mobile @bug @ai @done
+    Added overflow-hidden, min-w-0, and break-words to card components
+  ✔ Make the overcast button orange to match the overcast color (but still match the ListenBucket pallet) @ai @done
+    Changed from blue to orange-100/orange-600/orange-900 colors
+  ☐ Change the audioplayer to use amplitude.js and theme it to watch the site @ai
+  ☐ Add ListenBucket logo to the repo @human
+    ☐ After logo is available, replace the ListenLater feed image with the ListenBucket logo rather than from sources @ai
+    ☐ After the logo is available, set the favicon to the logo @ai

@@ -122,9 +122,11 @@ func GenerateFeed(feed *database.Feed, episodes []database.Episode, baseURL stri
 			ITunesExplicit: "no",
 		}
 
-		if ep.AudioURL != "" {
+		// Construct audio URL dynamically from episode ID and baseURL
+		// This ensures the URL works from any device, not just localhost
+		if ep.Status == "ready" {
 			item.Enclosure = &Enclosure{
-				URL:    ep.AudioURL,
+				URL:    fmt.Sprintf("%s/api/media/%s.mp3", baseURL, ep.ID),
 				Length: "0",
 				Type:   "audio/mpeg",
 			}

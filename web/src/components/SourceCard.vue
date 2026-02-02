@@ -35,8 +35,8 @@ const typeColors = {
 </script>
 
 <template>
-  <div class="card p-4">
-    <div class="flex gap-4">
+  <div class="card p-4 overflow-hidden">
+    <div class="flex gap-4 min-w-0">
       <img
         v-if="source.image_url"
         :src="source.image_url"

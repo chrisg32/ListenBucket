@@ -71,7 +71,7 @@ async function copyRssUrl() {
 
     <a
       :href="overcastUrl"
-      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-lg transition-colors"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 rounded-lg transition-colors"
     >
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10"/>

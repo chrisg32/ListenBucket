@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, computed, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   episode: {
@@ -9,6 +9,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['delete'])
+
+// Construct audio URL from episode ID to ensure it works from any device
+const audioUrl = computed(() => {
+  if (props.episode.status !== 'ready') return null
+  return `/api/media/${props.episode.id}.mp3`
+})
 
 const audioRef = ref(null)
 const isPlaying = ref(false)
@@ -56,8 +62,8 @@ const statusColors = {
 </script>
 
 <template>
-  <div class="card p-4">
-    <div class="flex gap-4">
+  <div class="card p-4 overflow-hidden">
+    <div class="flex gap-4 min-w-0">
       <div class="relative flex-shrink-0">
         <img
           v-if="episode.image_url"
@@ -73,7 +79,7 @@ const statusColors = {
 
         <!-- Play button overlay -->
         <button
-          v-if="episode.status === 'ready' && episode.audio_url"
+          v-if="episode.status === 'ready' && audioUrl"
           @click="togglePlay"
           class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg opacity-0 hover:opacity-100 transition-opacity"
         >
@@ -117,11 +123,11 @@ const statusColors = {
           </button>
         </div>
 
-        <p v-if="episode.description" class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+        <p v-if="episode.description" class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 break-words">
           {{ episode.description }}
         </p>
 
-        <p v-if="episode.error_msg" class="mt-2 text-sm text-red-500">
+        <p v-if="episode.error_msg" class="mt-2 text-sm text-red-500 break-words line-clamp-2">
           {{ episode.error_msg }}
         </p>
 
@@ -142,9 +148,9 @@ const statusColors = {
 
     <!-- Audio player -->
     <audio
-      v-if="episode.status === 'ready' && episode.audio_url"
+      v-if="episode.status === 'ready' && audioUrl"
       ref="audioRef"
-      :src="episode.audio_url"
+      :src="audioUrl"
       class="w-full mt-4"
       controls
       @ended="onEnded"

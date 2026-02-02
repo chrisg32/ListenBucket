@@ -168,7 +168,17 @@ func (s *Server) getFeedRSS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rss, err := podcast.GenerateFeed(feed, episodes, s.config.BaseURL)
+	// Determine base URL from request to ensure URLs work from any device
+	baseURL := s.config.BaseURL
+	if r.Host != "" {
+		scheme := "http"
+		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+		baseURL = scheme + "://" + r.Host
+	}
+
+	rss, err := podcast.GenerateFeed(feed, episodes, baseURL)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "rss_generation_error", err.Error())
 		return
