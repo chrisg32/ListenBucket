@@ -42,11 +42,14 @@ RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o listenb
 FROM alpine:3.19
 
 # Install runtime dependencies
+# Note: Install yt-dlp via pip to get the latest version (Alpine's package is often outdated)
 RUN apk add --no-cache \
     ffmpeg \
-    yt-dlp \
+    python3 \
+    py3-pip \
     ca-certificates \
-    tzdata
+    tzdata \
+    && pip3 install --break-system-packages --no-cache-dir yt-dlp
 
 # Create non-root user
 RUN adduser -D -h /app listenbucket
