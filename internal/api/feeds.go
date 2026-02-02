@@ -10,20 +10,24 @@ import (
 	"github.com/listenbucket/listenbucket/internal/podcast"
 )
 
+// CreateFeedRequest represents the request body for creating a feed
 type CreateFeedRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
+// UpdateFeedRequest represents the request body for updating a feed
 type UpdateFeedRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
-func (s *Server) getFeeds(w http.ResponseWriter, r *http.Request) {
+// listFeeds returns all feeds
+// GET /api/feeds
+func (s *Server) listFeeds(w http.ResponseWriter, r *http.Request) {
 	feeds, err := s.db.GetFeeds()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
@@ -34,113 +38,139 @@ func (s *Server) getFeeds(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(feeds)
 }
 
+// createFeed creates a new feed
+// POST /api/feeds
 func (s *Server) createFeed(w http.ResponseWriter, r *http.Request) {
 	var req CreateFeedRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid_json", err.Error())
 		return
 	}
 
 	if req.Title == "" {
-		http.Error(w, "title is required", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "validation_error", "title is required")
 		return
 	}
 
 	feed, err := s.db.CreateFeed(req.Title, req.Description)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(feed)
+	writeJSON(w, http.StatusCreated, feed)
 }
 
+// getFeed returns a single feed by ID
+// GET /api/feeds/{feedId}
 func (s *Server) getFeed(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "feedId")
 
 	feed, err := s.db.GetFeed(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
 	if feed == nil {
-		http.Error(w, "feed not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "not_found", "feed not found")
 		return
 	}
 
 	json.NewEncoder(w).Encode(feed)
 }
 
+// updateFeed updates an existing feed
+// PUT /api/feeds/{feedId}
 func (s *Server) updateFeed(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "feedId")
+
+	// Check if feed exists
+	feed, err := s.db.GetFeed(id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+	if feed == nil {
+		writeError(w, http.StatusNotFound, "not_found", "feed not found")
+		return
+	}
 
 	var req UpdateFeedRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid_json", err.Error())
+		return
+	}
+
+	if req.Title == "" {
+		writeError(w, http.StatusBadRequest, "validation_error", "title is required")
 		return
 	}
 
 	if err := s.db.UpdateFeed(id, req.Title, req.Description); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// Return updated feed
+	updatedFeed, _ := s.db.GetFeed(id)
+	json.NewEncoder(w).Encode(updatedFeed)
 }
 
+// deleteFeed deletes a feed
+// DELETE /api/feeds/{feedId}
 func (s *Server) deleteFeed(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "feedId")
 
-	// Check if it's the default feed
 	feed, err := s.db.GetFeed(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
 	if feed == nil {
-		http.Error(w, "feed not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "not_found", "feed not found")
 		return
 	}
 
 	if feed.IsDefault {
-		http.Error(w, "cannot delete the default Listen Later feed", http.StatusForbidden)
+		writeError(w, http.StatusForbidden, "forbidden", "cannot delete the default Listen Later feed")
 		return
 	}
 
 	if err := s.db.DeleteFeed(id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	writeSuccess(w, "feed deleted successfully")
 }
 
+// getFeedRSS returns the RSS feed XML
+// GET /api/feeds/{feedId}/rss
 func (s *Server) getFeedRSS(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "feedId")
 
 	feed, err := s.db.GetFeed(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
 	if feed == nil {
-		http.Error(w, "feed not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "not_found", "feed not found")
 		return
 	}
 
 	episodes, err := s.db.GetReadyEpisodesByFeed(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
 		return
 	}
 
 	rss, err := podcast.GenerateFeed(feed, episodes, s.config.BaseURL)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "rss_generation_error", err.Error())
 		return
 	}
 

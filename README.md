@@ -185,21 +185,128 @@ docker pull listenbucket/listenbucket:latest
 make test
 ```
 
-### API Endpoints
+### API Reference
+
+All API endpoints return JSON responses. Error responses include `error`, `message`, and `code` fields.
+
+#### Health Check
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check and version info |
+
+#### Feeds
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/feeds` | List all feeds |
 | POST | `/api/feeds` | Create a new feed |
-| GET | `/api/feeds/:id` | Get feed details |
-| DELETE | `/api/feeds/:id` | Delete a feed |
-| GET | `/api/feeds/:id/rss` | Get RSS feed XML |
-| GET | `/api/feeds/:id/episodes` | List episodes |
-| POST | `/api/feeds/:id/sources` | Add a source |
-| GET | `/api/feeds/:id/sources` | List sources |
-| DELETE | `/api/episodes/:id` | Delete episode |
-| DELETE | `/api/sources/:id` | Delete source |
-| GET | `/api/media/:filename` | Serve media files |
+| GET | `/api/feeds/{feedId}` | Get feed by ID |
+| PUT | `/api/feeds/{feedId}` | Update feed |
+| DELETE | `/api/feeds/{feedId}` | Delete feed (not default) |
+| GET | `/api/feeds/{feedId}/rss` | Get RSS feed XML |
+
+**Create/Update Feed Request Body:**
+```json
+{
+  "title": "My Podcast Feed",
+  "description": "Optional description"
+}
+```
+
+#### Episodes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/episodes` | List all episodes |
+| GET | `/api/feeds/{feedId}/episodes` | List episodes for a feed |
+| POST | `/api/feeds/{feedId}/episodes` | Add episode from URL |
+| GET | `/api/episodes/{episodeId}` | Get episode by ID |
+| PUT | `/api/episodes/{episodeId}` | Update episode metadata |
+| DELETE | `/api/episodes/{episodeId}` | Delete episode |
+| POST | `/api/episodes/{episodeId}/retry` | Retry failed download |
+
+**Create Episode Request Body:**
+```json
+{
+  "url": "https://www.youtube.com/watch?v=...",
+  "title": "Optional custom title",
+  "description": "Optional custom description"
+}
+```
+
+**Update Episode Request Body:**
+```json
+{
+  "title": "New title",
+  "description": "New description"
+}
+```
+
+#### Sources
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/sources` | List all sources |
+| GET | `/api/feeds/{feedId}/sources` | List sources for a feed |
+| POST | `/api/feeds/{feedId}/sources` | Add source (video/playlist/channel) |
+| GET | `/api/sources/{sourceId}` | Get source by ID |
+| DELETE | `/api/sources/{sourceId}` | Delete source |
+| POST | `/api/sources/{sourceId}/refresh` | Trigger source refresh |
+
+**Create Source Request Body:**
+```json
+{
+  "url": "https://www.youtube.com/watch?v=... or playlist or channel URL"
+}
+```
+
+#### Media
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/media/{filename}` | Serve audio files |
+
+#### Example API Usage
+
+```bash
+# Create a feed
+curl -X POST http://localhost:8080/api/feeds \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Feed","description":"Test"}'
+
+# Add a YouTube video as source
+curl -X POST http://localhost:8080/api/feeds/{feedId}/sources \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+
+# List all episodes
+curl http://localhost:8080/api/episodes
+
+# Retry a failed episode
+curl -X POST http://localhost:8080/api/episodes/{episodeId}/retry
+
+# Delete a feed
+curl -X DELETE http://localhost:8080/api/feeds/{feedId}
+```
+
+#### Error Responses
+
+All errors return a JSON object:
+
+```json
+{
+  "error": "not_found",
+  "message": "feed not found",
+  "code": 404
+}
+```
+
+Common error codes:
+- `400` - Bad request (validation error, invalid JSON)
+- `403` - Forbidden (e.g., deleting default feed)
+- `404` - Not found
+- `500` - Internal server error
 
 ---
 

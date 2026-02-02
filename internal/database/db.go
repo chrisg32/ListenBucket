@@ -400,3 +400,78 @@ func (db *DB) GetReadyEpisodesByFeed(feedID string) ([]Episode, error) {
 	}
 	return episodes, rows.Err()
 }
+
+// GetAllEpisodes returns all episodes across all feeds
+func (db *DB) GetAllEpisodes() ([]Episode, error) {
+	rows, err := db.conn.Query(
+		"SELECT id, feed_id, source_id, title, description, image_url, audio_url, duration, source_url, status, error_msg, created_at FROM episodes ORDER BY created_at DESC",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var episodes []Episode
+	for rows.Next() {
+		var e Episode
+		if err := rows.Scan(&e.ID, &e.FeedID, &e.SourceID, &e.Title, &e.Description, &e.ImageURL, &e.AudioURL, &e.Duration, &e.SourceURL, &e.Status, &e.ErrorMsg, &e.CreatedAt); err != nil {
+			return nil, err
+		}
+		episodes = append(episodes, e)
+	}
+	return episodes, rows.Err()
+}
+
+// UpdateEpisodeMetadata updates the title and description of an episode
+func (db *DB) UpdateEpisodeMetadata(id, title, description string) error {
+	_, err := db.conn.Exec(
+		"UPDATE episodes SET title = ?, description = ? WHERE id = ?",
+		title, description, id,
+	)
+	return err
+}
+
+// GetAllSources returns all sources across all feeds
+func (db *DB) GetAllSources() ([]Source, error) {
+	rows, err := db.conn.Query(
+		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources ORDER BY created_at DESC",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sources []Source
+	for rows.Next() {
+		var s Source
+		var lastChecked sql.NullTime
+		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt); err != nil {
+			return nil, err
+		}
+		if lastChecked.Valid {
+			s.LastChecked = lastChecked.Time
+		}
+		sources = append(sources, s)
+	}
+	return sources, rows.Err()
+}
+
+// GetSource returns a single source by ID
+func (db *DB) GetSource(id string) (*Source, error) {
+	var s Source
+	var lastChecked sql.NullTime
+	err := db.conn.QueryRow(
+		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources WHERE id = ?",
+		id,
+	).Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if lastChecked.Valid {
+		s.LastChecked = lastChecked.Time
+	}
+	return &s, nil
+}

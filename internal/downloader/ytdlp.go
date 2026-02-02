@@ -372,3 +372,49 @@ func (d *Downloader) updateFeedImageIfNeeded(feedID, imageURL string) {
 		d.db.UpdateFeedImage(feedID, imageURL)
 	}
 }
+
+// RefreshSource manually triggers a check for new content from a source
+func (d *Downloader) RefreshSource(src *database.Source) {
+	log.Printf("Manually refreshing source: %s (%s)", src.Title, src.URL)
+
+	if src.Type == database.SourceTypeVideo {
+		// Single videos don't need refreshing
+		d.db.UpdateSourceLastChecked(src.ID)
+		return
+	}
+
+	_, videos, err := d.GetPlaylistInfo(src.URL)
+	if err != nil {
+		log.Printf("Error refreshing source %s: %v", src.ID, err)
+		return
+	}
+
+	newCount := 0
+	for _, video := range videos {
+		exists, err := d.db.EpisodeExistsForSource(video.WebpageURL, src.FeedID)
+		if err != nil {
+			log.Printf("Error checking episode existence: %v", err)
+			continue
+		}
+		if exists {
+			continue
+		}
+
+		_, err = d.db.CreateEpisode(
+			src.FeedID,
+			src.ID,
+			video.Title,
+			video.Description,
+			video.Thumbnail,
+			video.WebpageURL,
+		)
+		if err != nil {
+			log.Printf("Error creating episode: %v", err)
+		} else {
+			newCount++
+		}
+	}
+
+	log.Printf("Refresh complete for source %s: %d new episodes", src.ID, newCount)
+	d.db.UpdateSourceLastChecked(src.ID)
+}
