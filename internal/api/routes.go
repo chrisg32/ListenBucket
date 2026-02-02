@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/listenbucket/listenbucket/internal/assets"
 	"github.com/listenbucket/listenbucket/internal/config"
 	"github.com/listenbucket/listenbucket/internal/database"
 	"github.com/listenbucket/listenbucket/internal/downloader"
@@ -88,6 +89,9 @@ func (s *Server) SetupRoutes(webFS embed.FS) http.Handler {
 
 		// Media files (different content type)
 		r.Get("/media/{filename}", s.serveMedia)
+
+		// Logo
+		r.Get("/logo.png", s.serveLogo)
 	})
 
 	// Serve static files from embedded filesystem
@@ -152,4 +156,11 @@ func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
 		"status":  "healthy",
 		"version": "1.0.0",
 	})
+}
+
+// serveLogo serves the ListenBucket logo
+func (s *Server) serveLogo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=31536000")
+	w.Write(assets.Logo)
 }

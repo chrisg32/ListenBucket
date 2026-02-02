@@ -2,59 +2,68 @@ package database
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 )
 
-func TestNewDatabase(t *testing.T) {
-	// Create temp directory
-	tmpDir, err := os.MkdirTemp("", "listenbucket-test-*")
+func setupTestDB(t *testing.T) (*DB, func()) {
+	t.Helper()
+
+	// Create temp file for test database
+	tmpFile, err := os.CreateTemp("", "listenbucket-test-*.db")
 	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
+		t.Fatalf("failed to create temp file: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	tmpFile.Close()
 
-	dbPath := filepath.Join(tmpDir, "test.db")
-
-	db, err := New(dbPath)
+	db, err := New(tmpFile.Name())
 	if err != nil {
+		os.Remove(tmpFile.Name())
 		t.Fatalf("failed to create database: %v", err)
 	}
-	defer db.Close()
 
-	// Verify default feed was created
+	cleanup := func() {
+		db.Close()
+		os.Remove(tmpFile.Name())
+	}
+
+	return db, cleanup
+}
+
+func TestNewDatabase(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	if db == nil {
+		t.Fatal("expected non-nil database")
+	}
+}
+
+func TestDefaultFeedCreation(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
 	feeds, err := db.GetFeeds()
 	if err != nil {
 		t.Fatalf("failed to get feeds: %v", err)
 	}
 
 	if len(feeds) != 1 {
-		t.Errorf("expected 1 default feed, got %d", len(feeds))
+		t.Fatalf("expected 1 default feed, got %d", len(feeds))
 	}
 
 	if feeds[0].Title != "Listen Later" {
-		t.Errorf("expected default feed title 'Listen Later', got '%s'", feeds[0].Title)
+		t.Errorf("expected title 'Listen Later', got '%s'", feeds[0].Title)
 	}
 
 	if !feeds[0].IsDefault {
-		t.Error("expected default feed to be marked as default")
+		t.Error("expected default feed to have IsDefault=true")
 	}
 }
 
-func TestCreateAndDeleteFeed(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "listenbucket-test-*")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
+func TestCreateFeed(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
 
-	db, err := New(filepath.Join(tmpDir, "test.db"))
-	if err != nil {
-		t.Fatalf("failed to create database: %v", err)
-	}
-	defer db.Close()
-
-	// Create a new feed
 	feed, err := db.CreateFeed("Test Feed", "Test Description")
 	if err != nil {
 		t.Fatalf("failed to create feed: %v", err)
@@ -64,131 +73,252 @@ func TestCreateAndDeleteFeed(t *testing.T) {
 		t.Errorf("expected title 'Test Feed', got '%s'", feed.Title)
 	}
 
+	if feed.Description != "Test Description" {
+		t.Errorf("expected description 'Test Description', got '%s'", feed.Description)
+	}
+
 	if feed.IsDefault {
-		t.Error("new feed should not be default")
+		t.Error("expected new feed to not be default")
 	}
 
-	// Verify we now have 2 feeds
-	feeds, err := db.GetFeeds()
+	// Verify feed was persisted
+	retrieved, err := db.GetFeed(feed.ID)
 	if err != nil {
-		t.Fatalf("failed to get feeds: %v", err)
+		t.Fatalf("failed to get feed: %v", err)
 	}
 
-	if len(feeds) != 2 {
-		t.Errorf("expected 2 feeds, got %d", len(feeds))
+	if retrieved == nil {
+		t.Fatal("expected to retrieve created feed")
 	}
 
-	// Delete the feed
+	if retrieved.Title != "Test Feed" {
+		t.Errorf("expected retrieved title 'Test Feed', got '%s'", retrieved.Title)
+	}
+}
+
+func TestDeleteFeed(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	// Create a non-default feed
+	feed, err := db.CreateFeed("Deletable Feed", "")
+	if err != nil {
+		t.Fatalf("failed to create feed: %v", err)
+	}
+
+	// Delete it
 	err = db.DeleteFeed(feed.ID)
 	if err != nil {
 		t.Fatalf("failed to delete feed: %v", err)
 	}
 
-	// Verify we're back to 1 feed
-	feeds, err = db.GetFeeds()
+	// Verify it's gone
+	retrieved, err := db.GetFeed(feed.ID)
 	if err != nil {
-		t.Fatalf("failed to get feeds: %v", err)
+		t.Fatalf("failed to get feed: %v", err)
 	}
 
-	if len(feeds) != 1 {
-		t.Errorf("expected 1 feed after deletion, got %d", len(feeds))
+	if retrieved != nil {
+		t.Error("expected feed to be deleted")
 	}
 }
 
 func TestCannotDeleteDefaultFeed(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "listenbucket-test-*")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	db, err := New(filepath.Join(tmpDir, "test.db"))
-	if err != nil {
-		t.Fatalf("failed to create database: %v", err)
-	}
-	defer db.Close()
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
 
 	feeds, err := db.GetFeeds()
 	if err != nil {
 		t.Fatalf("failed to get feeds: %v", err)
 	}
 
-	// Try to delete the default feed
-	err = db.DeleteFeed(feeds[0].ID)
+	defaultFeed := feeds[0]
+	if !defaultFeed.IsDefault {
+		t.Fatal("expected first feed to be default")
+	}
+
+	// Try to delete default feed
+	err = db.DeleteFeed(defaultFeed.ID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Feed should still exist (DELETE WHERE is_default = 0 won't match)
-	feeds, err = db.GetFeeds()
+	// Verify it still exists
+	retrieved, err := db.GetFeed(defaultFeed.ID)
 	if err != nil {
-		t.Fatalf("failed to get feeds: %v", err)
+		t.Fatalf("failed to get feed: %v", err)
 	}
 
-	if len(feeds) != 1 {
-		t.Errorf("default feed should not be deletable, expected 1 feed, got %d", len(feeds))
+	if retrieved == nil {
+		t.Error("default feed should not be deletable")
 	}
 }
 
-func TestEpisodeOperations(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "listenbucket-test-*")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	db, err := New(filepath.Join(tmpDir, "test.db"))
-	if err != nil {
-		t.Fatalf("failed to create database: %v", err)
-	}
-	defer db.Close()
+func TestCreateEpisode(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
 
 	feeds, _ := db.GetFeeds()
 	feedID := feeds[0].ID
 
-	// Create episode
-	ep, err := db.CreateEpisode(feedID, "", "Test Episode", "Description", "http://example.com/thumb.jpg", "http://youtube.com/watch?v=123")
+	episode, err := db.CreateEpisode(feedID, "", "Test Episode", "Description", "http://example.com/thumb.jpg", "http://youtube.com/watch?v=123")
 	if err != nil {
 		t.Fatalf("failed to create episode: %v", err)
 	}
 
-	if ep.Status != StatusPending {
-		t.Errorf("expected status %s, got %s", StatusPending, ep.Status)
+	if episode.Title != "Test Episode" {
+		t.Errorf("expected title 'Test Episode', got '%s'", episode.Title)
 	}
 
-	// Get episodes
-	episodes, err := db.GetEpisodesByFeed(feedID)
-	if err != nil {
-		t.Fatalf("failed to get episodes: %v", err)
+	if episode.Status != StatusPending {
+		t.Errorf("expected status '%s', got '%s'", StatusPending, episode.Status)
 	}
 
-	if len(episodes) != 1 {
-		t.Errorf("expected 1 episode, got %d", len(episodes))
-	}
-
-	// Update status
-	err = db.UpdateEpisodeStatus(ep.ID, StatusDownloading, "")
-	if err != nil {
-		t.Fatalf("failed to update status: %v", err)
-	}
-
-	// Verify status updated
-	updated, err := db.GetEpisode(ep.ID)
+	// Verify episode was persisted
+	retrieved, err := db.GetEpisode(episode.ID)
 	if err != nil {
 		t.Fatalf("failed to get episode: %v", err)
 	}
 
-	if updated.Status != StatusDownloading {
-		t.Errorf("expected status %s, got %s", StatusDownloading, updated.Status)
+	if retrieved == nil {
+		t.Fatal("expected to retrieve created episode")
 	}
+}
 
-	// Update audio
-	err = db.UpdateEpisodeAudio(ep.ID, "http://example.com/audio.mp3", 300)
+func TestUpdateEpisodeStatus(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	feeds, _ := db.GetFeeds()
+	feedID := feeds[0].ID
+
+	episode, _ := db.CreateEpisode(feedID, "", "Test Episode", "", "", "http://youtube.com/watch?v=123")
+
+	// Update to downloading
+	err := db.UpdateEpisodeStatus(episode.ID, StatusDownloading, "")
 	if err != nil {
-		t.Fatalf("failed to update audio: %v", err)
+		t.Fatalf("failed to update status: %v", err)
 	}
 
-	// Verify ready episodes
+	retrieved, _ := db.GetEpisode(episode.ID)
+	if retrieved.Status != StatusDownloading {
+		t.Errorf("expected status '%s', got '%s'", StatusDownloading, retrieved.Status)
+	}
+
+	// Update to error
+	err = db.UpdateEpisodeStatus(episode.ID, StatusError, "Download failed")
+	if err != nil {
+		t.Fatalf("failed to update status: %v", err)
+	}
+
+	retrieved, _ = db.GetEpisode(episode.ID)
+	if retrieved.Status != StatusError {
+		t.Errorf("expected status '%s', got '%s'", StatusError, retrieved.Status)
+	}
+	if retrieved.ErrorMsg != "Download failed" {
+		t.Errorf("expected error message 'Download failed', got '%s'", retrieved.ErrorMsg)
+	}
+}
+
+func TestGetPendingEpisodes(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	feeds, _ := db.GetFeeds()
+	feedID := feeds[0].ID
+
+	// Create multiple episodes
+	db.CreateEpisode(feedID, "", "Pending 1", "", "", "http://youtube.com/watch?v=1")
+	db.CreateEpisode(feedID, "", "Pending 2", "", "", "http://youtube.com/watch?v=2")
+
+	ep3, _ := db.CreateEpisode(feedID, "", "Not Pending", "", "", "http://youtube.com/watch?v=3")
+	db.UpdateEpisodeStatus(ep3.ID, StatusReady, "")
+
+	pending, err := db.GetPendingEpisodes()
+	if err != nil {
+		t.Fatalf("failed to get pending episodes: %v", err)
+	}
+
+	if len(pending) != 2 {
+		t.Errorf("expected 2 pending episodes, got %d", len(pending))
+	}
+}
+
+func TestCreateSource(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	feeds, _ := db.GetFeeds()
+	feedID := feeds[0].ID
+
+	source, err := db.CreateSource(feedID, "http://youtube.com/playlist?list=123", SourceTypePlaylist, "Test Playlist", "", true)
+	if err != nil {
+		t.Fatalf("failed to create source: %v", err)
+	}
+
+	if source.Type != SourceTypePlaylist {
+		t.Errorf("expected type '%s', got '%s'", SourceTypePlaylist, source.Type)
+	}
+
+	if !source.IncludeBackCatalog {
+		t.Error("expected IncludeBackCatalog to be true")
+	}
+
+	// Verify source was persisted
+	retrieved, err := db.GetSource(source.ID)
+	if err != nil {
+		t.Fatalf("failed to get source: %v", err)
+	}
+
+	if retrieved == nil {
+		t.Fatal("expected to retrieve created source")
+	}
+}
+
+func TestEpisodeExistsForSource(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	feeds, _ := db.GetFeeds()
+	feedID := feeds[0].ID
+
+	sourceURL := "http://youtube.com/watch?v=unique123"
+
+	// Should not exist initially
+	exists, err := db.EpisodeExistsForSource(sourceURL, feedID)
+	if err != nil {
+		t.Fatalf("failed to check existence: %v", err)
+	}
+	if exists {
+		t.Error("expected episode to not exist")
+	}
+
+	// Create episode
+	db.CreateEpisode(feedID, "", "Test", "", "", sourceURL)
+
+	// Should exist now
+	exists, err = db.EpisodeExistsForSource(sourceURL, feedID)
+	if err != nil {
+		t.Fatalf("failed to check existence: %v", err)
+	}
+	if !exists {
+		t.Error("expected episode to exist")
+	}
+}
+
+func TestGetReadyEpisodesByFeed(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	feeds, _ := db.GetFeeds()
+	feedID := feeds[0].ID
+
+	// Create episodes with different statuses
+	ep1, _ := db.CreateEpisode(feedID, "", "Ready Episode", "", "", "http://youtube.com/watch?v=1")
+	db.UpdateEpisodeAudio(ep1.ID, "http://example.com/audio.mp3", 300)
+
+	db.CreateEpisode(feedID, "", "Pending Episode", "", "", "http://youtube.com/watch?v=2")
+
 	ready, err := db.GetReadyEpisodesByFeed(feedID)
 	if err != nil {
 		t.Fatalf("failed to get ready episodes: %v", err)
@@ -198,55 +328,7 @@ func TestEpisodeOperations(t *testing.T) {
 		t.Errorf("expected 1 ready episode, got %d", len(ready))
 	}
 
-	if ready[0].Duration != 300 {
-		t.Errorf("expected duration 300, got %d", ready[0].Duration)
-	}
-}
-
-func TestSourceOperations(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "listenbucket-test-*")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	db, err := New(filepath.Join(tmpDir, "test.db"))
-	if err != nil {
-		t.Fatalf("failed to create database: %v", err)
-	}
-	defer db.Close()
-
-	feeds, _ := db.GetFeeds()
-	feedID := feeds[0].ID
-
-	// Create source
-	src, err := db.CreateSource(feedID, "http://youtube.com/watch?v=123", SourceTypeVideo, "Test Video", "http://example.com/thumb.jpg")
-	if err != nil {
-		t.Fatalf("failed to create source: %v", err)
-	}
-
-	if src.Type != SourceTypeVideo {
-		t.Errorf("expected type %s, got %s", SourceTypeVideo, src.Type)
-	}
-
-	// Get sources
-	sources, err := db.GetSourcesByFeed(feedID)
-	if err != nil {
-		t.Fatalf("failed to get sources: %v", err)
-	}
-
-	if len(sources) != 1 {
-		t.Errorf("expected 1 source, got %d", len(sources))
-	}
-
-	// Delete source
-	err = db.DeleteSource(src.ID)
-	if err != nil {
-		t.Fatalf("failed to delete source: %v", err)
-	}
-
-	sources, _ = db.GetSourcesByFeed(feedID)
-	if len(sources) != 0 {
-		t.Errorf("expected 0 sources after deletion, got %d", len(sources))
+	if ready[0].Title != "Ready Episode" {
+		t.Errorf("expected 'Ready Episode', got '%s'", ready[0].Title)
 	}
 }

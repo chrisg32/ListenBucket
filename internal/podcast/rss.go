@@ -100,14 +100,17 @@ func GenerateFeed(feed *database.Feed, episodes []database.Episode, baseURL stri
 		},
 	}
 
-	if feed.ImageURL != "" {
-		rss.Channel.Image = &Image{
-			URL:   feed.ImageURL,
-			Title: feed.Title,
-			Link:  feedURL,
-		}
-		rss.Channel.ITunesImage = &ITunesImage{Href: feed.ImageURL}
+	// Use feed image or default to logo
+	imageURL := feed.ImageURL
+	if imageURL == "" {
+		imageURL = fmt.Sprintf("%s/api/logo.png", baseURL)
 	}
+	rss.Channel.Image = &Image{
+		URL:   imageURL,
+		Title: feed.Title,
+		Link:  feedURL,
+	}
+	rss.Channel.ITunesImage = &ITunesImage{Href: imageURL}
 
 	for _, ep := range episodes {
 		item := Item{
