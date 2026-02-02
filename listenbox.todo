@@ -16,6 +16,14 @@ Tasks:
   ✔ Change RSS button to be gray @ai @done
     Changed from orange to gray-200/gray-700 colors
     ☐ Change RSS button to yellow @ai
-  ☐ Add ListenBucket logo to the repo @human
+    ☐ Create a publish_instructions.md file with instructions on how to deploy to DockerHub (and/or GitHub if it supports publishing container images) @ai
+    ☐ Create unit tests for anythig testable @ai
+    ☐ Create a GitHub action CI/CD that will build and test that application @ai
+    ☐ Make changes to README.md to be more typical of an open source project of this type @ai
+      ☐ Copy any instructions about the project design into a new file for AI agents to reference (moved from README) @ai
+    ☐ Create a GitHub action for building and publishing to GitHub @ai
+      ☐ Update the README with relevant badges (build, test coverage, etc.) @ai
+  ✔ Add ListenBucket logo to the repo @human @done (26-02-02 17:00)
+    Added listen-later.png
     ☐ After logo is available, replace the ListenLater feed image with the ListenBucket logo rather than from sources @ai
     ☐ After the logo is available, set the favicon to the logo @ai
