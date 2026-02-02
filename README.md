@@ -257,9 +257,15 @@ All API endpoints return JSON responses. Error responses include `error`, `messa
 **Create Source Request Body:**
 ```json
 {
-  "url": "https://www.youtube.com/watch?v=... or playlist or channel URL"
+  "url": "https://www.youtube.com/watch?v=... or playlist or channel URL",
+  "include_back_catalog": true
 }
 ```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | string | required | YouTube video, playlist, or channel URL |
+| `include_back_catalog` | boolean | `true` | For playlists/channels: if `true`, adds all existing videos; if `false`, only tracks new videos added after today |
 
 #### Media
 
@@ -279,6 +285,11 @@ curl -X POST http://localhost:8080/api/feeds \
 curl -X POST http://localhost:8080/api/feeds/{feedId}/sources \
   -H "Content-Type: application/json" \
   -d '{"url":"https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+
+# Add a YouTube playlist (only track new videos, skip existing)
+curl -X POST http://localhost:8080/api/feeds/{feedId}/sources \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.youtube.com/playlist?list=PLxxxxx","include_back_catalog":false}'
 
 # List all episodes
 curl http://localhost:8080/api/episodes

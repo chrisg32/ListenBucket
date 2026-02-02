@@ -28,14 +28,15 @@ type Episode struct {
 }
 
 type Source struct {
-	ID           string    `json:"id"`
-	FeedID       string    `json:"feed_id"`
-	URL          string    `json:"url"`
-	Type         string    `json:"type"` // video, playlist, channel
-	Title        string    `json:"title"`
-	ImageURL     string    `json:"image_url"`
-	LastChecked  time.Time `json:"last_checked"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID                 string    `json:"id"`
+	FeedID             string    `json:"feed_id"`
+	URL                string    `json:"url"`
+	Type               string    `json:"type"` // video, playlist, channel
+	Title              string    `json:"title"`
+	ImageURL           string    `json:"image_url"`
+	IncludeBackCatalog bool      `json:"include_back_catalog"` // For playlists/channels: add existing videos
+	LastChecked        time.Time `json:"last_checked"`
+	CreatedAt          time.Time `json:"created_at"`
 }
 
 const (

@@ -37,10 +37,10 @@ const hasEpisodes = computed(() => {
   return store.episodes.length > 0
 })
 
-async function handleAddSource(url) {
+async function handleAddSource(url, includeBackCatalog) {
   addingSource.value = true
   try {
-    await store.addSource(feedId.value, url)
+    await store.addSource(feedId.value, url, includeBackCatalog)
     showAddSource.value = false
   } catch (e) {
     alert(e.message)

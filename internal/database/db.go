@@ -76,6 +76,7 @@ func (db *DB) migrate() error {
 		type TEXT DEFAULT 'video',
 		title TEXT DEFAULT '',
 		image_url TEXT DEFAULT '',
+		include_back_catalog INTEGER DEFAULT 1,
 		last_checked DATETIME,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE
@@ -294,7 +295,7 @@ func (db *DB) GetPendingEpisodes() ([]Episode, error) {
 
 func (db *DB) GetSourcesByFeed(feedID string) ([]Source, error) {
 	rows, err := db.conn.Query(
-		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources WHERE feed_id = ? ORDER BY created_at DESC",
+		"SELECT id, feed_id, url, type, title, image_url, include_back_catalog, last_checked, created_at FROM sources WHERE feed_id = ? ORDER BY created_at DESC",
 		feedID,
 	)
 	if err != nil {
@@ -306,7 +307,7 @@ func (db *DB) GetSourcesByFeed(feedID string) ([]Source, error) {
 	for rows.Next() {
 		var s Source
 		var lastChecked sql.NullTime
-		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &s.IncludeBackCatalog, &lastChecked, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		if lastChecked.Valid {
@@ -317,20 +318,21 @@ func (db *DB) GetSourcesByFeed(feedID string) ([]Source, error) {
 	return sources, rows.Err()
 }
 
-func (db *DB) CreateSource(feedID, url, sourceType, title, imageURL string) (*Source, error) {
+func (db *DB) CreateSource(feedID, url, sourceType, title, imageURL string, includeBackCatalog bool) (*Source, error) {
 	s := Source{
-		ID:        uuid.New().String(),
-		FeedID:    feedID,
-		URL:       url,
-		Type:      sourceType,
-		Title:     title,
-		ImageURL:  imageURL,
-		CreatedAt: time.Now(),
+		ID:                 uuid.New().String(),
+		FeedID:             feedID,
+		URL:                url,
+		Type:               sourceType,
+		Title:              title,
+		ImageURL:           imageURL,
+		IncludeBackCatalog: includeBackCatalog,
+		CreatedAt:          time.Now(),
 	}
 
 	_, err := db.conn.Exec(
-		"INSERT INTO sources (id, feed_id, url, type, title, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		s.ID, s.FeedID, s.URL, s.Type, s.Title, s.ImageURL, s.CreatedAt,
+		"INSERT INTO sources (id, feed_id, url, type, title, image_url, include_back_catalog, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		s.ID, s.FeedID, s.URL, s.Type, s.Title, s.ImageURL, s.IncludeBackCatalog, s.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -351,7 +353,7 @@ func (db *DB) DeleteSource(id string) error {
 func (db *DB) GetSourcesNeedingUpdate() ([]Source, error) {
 	// Get sources that haven't been checked in the last hour
 	rows, err := db.conn.Query(
-		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources WHERE type IN (?, ?) AND (last_checked IS NULL OR last_checked < datetime('now', '-1 hour'))",
+		"SELECT id, feed_id, url, type, title, image_url, include_back_catalog, last_checked, created_at FROM sources WHERE type IN (?, ?) AND (last_checked IS NULL OR last_checked < datetime('now', '-1 hour'))",
 		SourceTypePlaylist, SourceTypeChannel,
 	)
 	if err != nil {
@@ -363,7 +365,7 @@ func (db *DB) GetSourcesNeedingUpdate() ([]Source, error) {
 	for rows.Next() {
 		var s Source
 		var lastChecked sql.NullTime
-		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &s.IncludeBackCatalog, &lastChecked, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		if lastChecked.Valid {
@@ -434,7 +436,7 @@ func (db *DB) UpdateEpisodeMetadata(id, title, description string) error {
 // GetAllSources returns all sources across all feeds
 func (db *DB) GetAllSources() ([]Source, error) {
 	rows, err := db.conn.Query(
-		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources ORDER BY created_at DESC",
+		"SELECT id, feed_id, url, type, title, image_url, include_back_catalog, last_checked, created_at FROM sources ORDER BY created_at DESC",
 	)
 	if err != nil {
 		return nil, err
@@ -445,7 +447,7 @@ func (db *DB) GetAllSources() ([]Source, error) {
 	for rows.Next() {
 		var s Source
 		var lastChecked sql.NullTime
-		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &s.IncludeBackCatalog, &lastChecked, &s.CreatedAt); err != nil {
 			return nil, err
 		}
 		if lastChecked.Valid {
@@ -461,9 +463,9 @@ func (db *DB) GetSource(id string) (*Source, error) {
 	var s Source
 	var lastChecked sql.NullTime
 	err := db.conn.QueryRow(
-		"SELECT id, feed_id, url, type, title, image_url, last_checked, created_at FROM sources WHERE id = ?",
+		"SELECT id, feed_id, url, type, title, image_url, include_back_catalog, last_checked, created_at FROM sources WHERE id = ?",
 		id,
-	).Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &lastChecked, &s.CreatedAt)
+	).Scan(&s.ID, &s.FeedID, &s.URL, &s.Type, &s.Title, &s.ImageURL, &s.IncludeBackCatalog, &lastChecked, &s.CreatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

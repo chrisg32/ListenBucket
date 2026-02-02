@@ -11,7 +11,8 @@ import (
 
 // CreateSourceRequest represents the request body for adding a source
 type CreateSourceRequest struct {
-	URL string `json:"url"`
+	URL                string `json:"url"`
+	IncludeBackCatalog *bool  `json:"include_back_catalog,omitempty"` // Default: true. For playlists/channels: add existing videos
 }
 
 // listSources returns all sources for a feed
@@ -86,7 +87,13 @@ func (s *Server) createSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	source, err := s.downloader.AddSource(feedID, req.URL)
+	// Default to true if not specified
+	includeBackCatalog := true
+	if req.IncludeBackCatalog != nil {
+		includeBackCatalog = *req.IncludeBackCatalog
+	}
+
+	source, err := s.downloader.AddSource(feedID, req.URL, includeBackCatalog)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "source_error", err.Error())
 		return

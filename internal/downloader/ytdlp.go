@@ -293,7 +293,7 @@ func (d *Downloader) checkSource(ctx context.Context, src *database.Source) {
 	d.db.UpdateSourceLastChecked(src.ID)
 }
 
-func (d *Downloader) AddSource(feedID, url string) (*database.Source, error) {
+func (d *Downloader) AddSource(feedID, url string, includeBackCatalog bool) (*database.Source, error) {
 	sourceType := d.DetectSourceType(url)
 
 	var title, imageURL string
@@ -307,8 +307,8 @@ func (d *Downloader) AddSource(feedID, url string) (*database.Source, error) {
 		title = info.Title
 		imageURL = info.Thumbnail
 
-		// Create source
-		src, err := d.db.CreateSource(feedID, url, sourceType, title, imageURL)
+		// Create source (includeBackCatalog is always true for single videos)
+		src, err := d.db.CreateSource(feedID, url, sourceType, title, imageURL, true)
 		if err != nil {
 			return nil, err
 		}
@@ -337,17 +337,21 @@ func (d *Downloader) AddSource(feedID, url string) (*database.Source, error) {
 			}
 		}
 
-		src, err := d.db.CreateSource(feedID, url, sourceType, title, imageURL)
+		src, err := d.db.CreateSource(feedID, url, sourceType, title, imageURL, includeBackCatalog)
 		if err != nil {
 			return nil, err
 		}
 
-		// Create episodes for all videos in playlist
-		for _, video := range videos {
-			_, err := d.db.CreateEpisode(feedID, src.ID, video.Title, video.Description, video.Thumbnail, video.WebpageURL)
-			if err != nil {
-				log.Printf("Error creating episode for video %s: %v", video.ID, err)
+		// Only add existing videos if includeBackCatalog is true
+		if includeBackCatalog {
+			for _, video := range videos {
+				_, err := d.db.CreateEpisode(feedID, src.ID, video.Title, video.Description, video.Thumbnail, video.WebpageURL)
+				if err != nil {
+					log.Printf("Error creating episode for video %s: %v", video.ID, err)
+				}
 			}
+		} else {
+			log.Printf("Source %s added without back catalog - will only track new videos", src.ID)
 		}
 
 		d.updateFeedImageIfNeeded(feedID, imageURL)

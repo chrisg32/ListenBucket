@@ -111,12 +111,12 @@ export const useFeedsStore = defineStore('feeds', () => {
     }
   }
 
-  async function addSource(feedId, url) {
+  async function addSource(feedId, url, includeBackCatalog = true) {
     try {
       const response = await fetch(`/api/feeds/${feedId}/sources`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, include_back_catalog: includeBackCatalog }),
       })
       if (!response.ok) {
         const msg = await response.text()
