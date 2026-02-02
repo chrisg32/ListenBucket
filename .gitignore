@@ -407,3 +407,30 @@ ListenBucket/ListenBucket/listenBucket.db-shm
 ListenBucket/ListenBucket/listenBucket.db-wal
 /ListenBucket/.idea
 *.mp3
+
+# Go
+bin/
+*.exe
+
+# Vue.js / Node
+web/node_modules/
+web/dist/
+
+# Data directory (runtime data)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

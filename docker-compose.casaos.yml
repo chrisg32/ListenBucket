@@ -1,0 +1,39 @@
+# CasaOS-compatible docker-compose file
+# To use: Save as docker-compose.yml in your CasaOS app directory
+
+version: '3.8'
+
+services:
+  listenbucket:
+    image: listenbucket:latest
+    container_name: listenbucket
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /DATA/AppData/listenbucket:/data
+    environment:
+      - PORT=8080
+      - DATA_DIR=/data
+      - BASE_URL=http://your-casaos-ip:8080
+    labels:
+      icon: https://raw.githubusercontent.com/listenbucket/listenbucket/main/web/public/favicon.svg
+      traefik.enable: "false"
+
+# CasaOS App Store metadata (for custom app stores)
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: listenbucket
+  author: ListenBucket
+  category: Media
+  description:
+    en_us: Convert YouTube videos, playlists, and channels into podcast feeds
+  developer: ListenBucket
+  icon: https://raw.githubusercontent.com/listenbucket/listenbucket/main/web/public/favicon.svg
+  index: /
+  port_map: "8080"
+  scheme: http
+  title:
+    en_us: ListenBucket
