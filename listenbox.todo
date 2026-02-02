@@ -7,7 +7,15 @@ Tasks:
     Added overflow-hidden, min-w-0, and break-words to card components
   ✔ Make the overcast button orange to match the overcast color (but still match the ListenBucket pallet) @ai @done
     Changed from blue to orange-100/orange-600/orange-900 colors
-  ☐ Change the audioplayer to use amplitude.js and theme it to watch the site @ai
+  ✔ Change the audioplayer to use amplitude.js and theme it to watch the site @ai @done
+    Created custom AudioPlayer.vue component with themed UI (primary colors, dark mode support)
+    Uses native HTML5 audio element with custom controls for better multi-instance support
+  ✔ Make any changes nessesary to support audio scrubbing/seeking @ai @done
+    AudioPlayer supports click-to-seek and drag-to-seek (mouse + touch)
+    Progress bar shows current position with draggable handle
+  ✔ Change RSS button to be gray @ai @done
+    Changed from orange to gray-200/gray-700 colors
+    ☐ Change RSS button to yellow @ai
   ☐ Add ListenBucket logo to the repo @human
     ☐ After logo is available, replace the ListenLater feed image with the ListenBucket logo rather than from sources @ai
     ☐ After the logo is available, set the favicon to the logo @ai

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, defineProps, defineEmits } from 'vue'
+import AudioPlayer from './AudioPlayer.vue'
 
 const props = defineProps({
   episode: {
@@ -16,7 +17,6 @@ const audioUrl = computed(() => {
   return `/api/media/${props.episode.id}.mp3`
 })
 
-const audioRef = ref(null)
 const isPlaying = ref(false)
 
 function formatDate(dateString) {
@@ -38,18 +38,15 @@ function formatDuration(seconds) {
   return `${minutes}:${secs.toString().padStart(2, '0')}`
 }
 
-function togglePlay() {
-  if (audioRef.value) {
-    if (isPlaying.value) {
-      audioRef.value.pause()
-    } else {
-      audioRef.value.play()
-    }
-    isPlaying.value = !isPlaying.value
-  }
+function onPlayerPlay() {
+  isPlaying.value = true
 }
 
-function onEnded() {
+function onPlayerPause() {
+  isPlaying.value = false
+}
+
+function onPlayerEnded() {
   isPlaying.value = false
 }
 
@@ -77,21 +74,17 @@ const statusColors = {
           </svg>
         </div>
 
-        <!-- Play button overlay -->
-        <button
-          v-if="episode.status === 'ready' && audioUrl"
-          @click="togglePlay"
-          class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg opacity-0 hover:opacity-100 transition-opacity"
+        <!-- Playing indicator overlay -->
+        <div
+          v-if="episode.status === 'ready' && audioUrl && isPlaying"
+          class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg"
         >
           <div class="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-            <svg v-if="!isPlaying" class="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <svg v-else class="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            <svg class="w-6 h-6 text-primary-600 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
           </div>
-        </button>
+        </div>
       </div>
 
       <div class="flex-1 min-w-0">
@@ -147,15 +140,14 @@ const statusColors = {
     </div>
 
     <!-- Audio player -->
-    <audio
+    <AudioPlayer
       v-if="episode.status === 'ready' && audioUrl"
-      ref="audioRef"
       :src="audioUrl"
-      class="w-full mt-4"
-      controls
-      @ended="onEnded"
-      @play="isPlaying = true"
-      @pause="isPlaying = false"
-    ></audio>
+      :title="episode.title"
+      class="mt-4"
+      @play="onPlayerPlay"
+      @pause="onPlayerPause"
+      @ended="onPlayerEnded"
+    />
   </div>
 </template>
