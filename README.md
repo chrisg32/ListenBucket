@@ -5,15 +5,19 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/listenbucket/listenbucket)](https://goreportcard.com/report/github.com/listenbucket/listenbucket)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Turn YouTube videos into podcast feeds.** ListenBucket lets you add YouTube videos, playlists, and channels to personal podcast feeds that you can subscribe to in any podcast app.
+**Create podcast feeds from any video source.** A personal format-shifting tool for audio content. ListenBucket extracts audio from online videos and creates personal podcast feeds, allowing you to listen to content in your preferred podcast app.
 
 <p align="center">
   <img src="listen-later.png" alt="ListenBucket Logo" width="200">
 </p>
 
+## Disclaimer
+
+This tool is provided for personal, lawful use only. We do not condone or support copyright infringement. Users are responsible for ensuring their use complies with applicable laws and terms of service. Please support the platforms and content creators you enjoy.
+
 ## Features
 
-- **YouTube Support** - Add individual videos, entire playlists, or channels
+- **Format Shifting** - Convert online videos to audio for personal listening
 - **Automatic Updates** - Playlists and channels are checked hourly for new content
 - **Podcast Compatible** - Subscribe in Apple Podcasts, Overcast, Pocket Casts, or any podcast app
 - **Self-Hosted** - Your data stays on your server
@@ -57,7 +61,7 @@ Install directly from Docker Hub or use the included `docker-compose.casaos.yml`
 ## Usage
 
 1. **Create a Feed** - Or use the default "Listen Later" feed
-2. **Add Sources** - Paste YouTube video, playlist, or channel URLs
+2. **Add Sources** - Paste video, playlist, or channel URLs
 3. **Subscribe** - Copy the RSS link or open directly in your podcast app
 4. **Listen** - Episodes download automatically as MP3s
 
@@ -134,15 +138,15 @@ curl http://localhost:8080/api/feeds/{feedId}/rss
 ### Sources
 
 ```bash
-# Add YouTube video
+# Add a video
 curl -X POST http://localhost:8080/api/feeds/{feedId}/sources \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://www.youtube.com/watch?v=..."}'
+  -d '{"url":"https://..."}'
 
 # Add playlist (new videos only)
 curl -X POST http://localhost:8080/api/feeds/{feedId}/sources \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://www.youtube.com/playlist?list=...","include_back_catalog":false}'
+  -d '{"url":"https://...","include_back_catalog":false}'
 ```
 
 ### Episodes

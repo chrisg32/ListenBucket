@@ -51,3 +51,10 @@ Tasks:
       ☐ Need an initial onboarding screen creating the initial account
     ✘ Cloud mirroring - will upload feed contents (xml + mp3s) to a cloud provider and use the external cloud provider link for opening in podcast apps, easy way to get around firewalls @cancelled (26-02-02 21:52)
       ✘ S3 bucket mirror @cancelled (26-02-02 21:52)
+  ✔ Ensure no youtube APIs are used and instead rely entirely on yt-dlp for collecting and meta data @ai @done
+    Verified - no YouTube APIs used, relies entirely on yt-dlp
+  ✔ Remove the mention of YouTube from the README. Reword the description to indicate this is a persinal "format shifting" tool. @ai @done
+    Reworded as "personal format-shifting tool for audio content"
+    Removed YouTube mentions, made URLs generic
+  ✔ Add a very brief disclosure that we do not condone or support copyright infringement and it is up to the user to use the tool (emphasise tool) at their own discresion. Also add a note encouraging users to support the platforms and creators that consume. @ai @done
+    Added Disclaimer section with copyright notice and creator support message
