@@ -41,3 +41,13 @@ Tasks:
     Copied logo to web/public/logo.png
   ✔ Fix the ListenLater feed image is not the ListenBucket logo or the webpage cannot locate the image @ai @bug @done
     Updated FeedCard.vue and FeedView.vue to use /logo.png as fallback when image_url is empty
+  ✔ The image in the README is too big. Please constrain the size of the image. @ai @done
+    Used HTML img tag with width="200" and centered alignment
+  ✔ Change the license from MIT to Apache-2.0. @ai @done
+    Updated LICENSE file to Apache 2.0, updated README badge and license section
+    ☐ Directly upload a file or a video (file upload)
+    ✘ Multiple users @cancelled (26-02-02 21:54)
+    ☐ Authentication/Authorization (for everything except feed downloads)
+      ☐ Need an initial onboarding screen creating the initial account
+    ✘ Cloud mirroring - will upload feed contents (xml + mp3s) to a cloud provider and use the external cloud provider link for opening in podcast apps, easy way to get around firewalls @cancelled (26-02-02 21:52)
+      ✘ S3 bucket mirror @cancelled (26-02-02 21:52)

@@ -3,11 +3,13 @@
 [![CI](https://github.com/listenbucket/listenbucket/actions/workflows/ci.yml/badge.svg)](https://github.com/listenbucket/listenbucket/actions/workflows/ci.yml)
 [![Release](https://github.com/listenbucket/listenbucket/actions/workflows/release.yml/badge.svg)](https://github.com/listenbucket/listenbucket/actions/workflows/release.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/listenbucket/listenbucket)](https://goreportcard.com/report/github.com/listenbucket/listenbucket)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Turn YouTube videos into podcast feeds.** ListenBucket lets you add YouTube videos, playlists, and channels to personal podcast feeds that you can subscribe to in any podcast app.
 
-![ListenBucket Screenshot](listen-later.png)
+<p align="center">
+  <img src="listen-later.png" alt="ListenBucket Logo" width="200">
+</p>
 
 ## Features
 
@@ -189,10 +191,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-- Inspired by the discontinued ListenBox app
 - Architecture inspired by [Mailpit](https://mailpit.axllent.org/)
 - Powered by [yt-dlp](https://github.com/yt-dlp/yt-dlp)
