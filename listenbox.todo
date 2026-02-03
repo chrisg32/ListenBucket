@@ -58,3 +58,5 @@ Tasks:
     Removed YouTube mentions, made URLs generic
   ✔ Add a very brief disclosure that we do not condone or support copyright infringement and it is up to the user to use the tool (emphasise tool) at their own discresion. Also add a note encouraging users to support the platforms and creators that consume. @ai @done
     Added Disclaimer section with copyright notice and creator support message
+  ✔ Fix: after installer from docker hub, I cannot access localhost. It seems that the publically exposed port is missing. Also, the default name of the running container is a random name. I would like it to default to ListenBucket. Fix these issue with the docker container. I installed from DockerHub using 'docker run --rm theonecalledchris/listenbucket:latest' @ai @done
+    Updated README.md and publish_instructions.md with correct image name (theonecalledchris/listenbucket) and proper docker run commands including -p 8080:8080 and --name listenbucket flags

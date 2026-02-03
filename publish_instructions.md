@@ -23,14 +23,14 @@ This document describes how to publish ListenBucket container images to Docker H
 
 ```bash
 # Build the image
-docker build -t listenbucket/listenbucket:latest .
+docker build -t theonecalledchris/listenbucket:latest .
 
 # Tag with version
-docker tag listenbucket/listenbucket:latest listenbucket/listenbucket:v1.0.0
+docker tag theonecalledchris/listenbucket:latest theonecalledchris/listenbucket:v1.0.0
 
 # Push to Docker Hub
-docker push listenbucket/listenbucket:latest
-docker push listenbucket/listenbucket:v1.0.0
+docker push theonecalledchris/listenbucket:latest
+docker push theonecalledchris/listenbucket:v1.0.0
 ```
 
 ### Multi-Architecture Build (Recommended)
@@ -44,8 +44,8 @@ docker buildx create --name multiarch --use
 # Build and push multi-arch image
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t listenbucket/listenbucket:latest \
-  -t listenbucket/listenbucket:v1.0.0 \
+  -t theonecalledchris/listenbucket:latest \
+  -t theonecalledchris/listenbucket:v1.0.0 \
   --push \
   .
 ```
@@ -130,13 +130,41 @@ GHCR uses the built-in `GITHUB_TOKEN` automatically.
 
 ```bash
 # Docker Hub
-docker pull listenbucket/listenbucket:latest
-docker run --rm listenbucket/listenbucket:latest --version
+docker pull theonecalledchris/listenbucket:latest
+docker run --rm theonecalledchris/listenbucket:latest --version
 
 # GHCR
 docker pull ghcr.io/listenbucket/listenbucket:latest
 docker run --rm ghcr.io/listenbucket/listenbucket:latest --version
 ```
+
+## Running the Container
+
+To properly run the container with port access and a named container:
+
+```bash
+# Docker Hub
+docker run -d \
+  --name listenbucket \
+  -p 8080:8080 \
+  -v listenbucket_data:/data \
+  theonecalledchris/listenbucket:latest
+
+# GHCR
+docker run -d \
+  --name listenbucket \
+  -p 8080:8080 \
+  -v listenbucket_data:/data \
+  ghcr.io/listenbucket/listenbucket:latest
+```
+
+**Important flags:**
+- `-d` - Run in detached mode (background)
+- `--name listenbucket` - Name the container "listenbucket" instead of a random name
+- `-p 8080:8080` - **Required** to access the web interface from your host
+- `-v listenbucket_data:/data` - Persist data between container restarts
+
+Without the `-p 8080:8080` flag, the container's port will not be accessible from localhost.
 
 ## Troubleshooting
 

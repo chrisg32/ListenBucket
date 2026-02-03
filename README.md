@@ -34,13 +34,15 @@ docker run -d \
   --name listenbucket \
   -p 8080:8080 \
   -v listenbucket_data:/data \
-  listenbucket/listenbucket:latest
+  theonecalledchris/listenbucket:latest
 ```
+
+> **Note:** The `-p 8080:8080` flag is required to access the web interface. Without it, the container's port won't be accessible from your host.
 
 Or with Docker Compose:
 
 ```bash
-curl -O https://raw.githubusercontent.com/listenbucket/listenbucket/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/theonecalledchris/listenbucket/main/docker-compose.yml
 docker-compose up -d
 ```
 
