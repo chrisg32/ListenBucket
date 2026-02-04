@@ -146,7 +146,7 @@ func jsonContentType(next http.Handler) http.Handler {
 // writeError writes a JSON error response
 func writeError(w http.ResponseWriter, code int, err string, message string) {
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(APIError{
+	_ = json.NewEncoder(w).Encode(APIError{
 		Error:   err,
 		Message: message,
 		Code:    code,
@@ -155,7 +155,7 @@ func writeError(w http.ResponseWriter, code int, err string, message string) {
 
 // writeSuccess writes a JSON success response
 func writeSuccess(w http.ResponseWriter, message string) {
-	json.NewEncoder(w).Encode(APISuccess{
+	_ = json.NewEncoder(w).Encode(APISuccess{
 		Success: true,
 		Message: message,
 	})
@@ -164,12 +164,12 @@ func writeSuccess(w http.ResponseWriter, message string) {
 // writeJSON writes a JSON response with the given status code
 func writeJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data)
+	_ = json.NewEncoder(w).Encode(data)
 }
 
 // healthCheck returns the health status of the API
 func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "healthy",
 		"version": "1.1.0",
 	})
@@ -179,5 +179,5 @@ func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
 func (s *Server) serveLogo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", "public, max-age=31536000")
-	w.Write(assets.Logo)
+	_, _ = w.Write(assets.Logo)
 }

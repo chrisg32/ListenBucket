@@ -35,7 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Initialize downloader
 	dl := downloader.New(db, cfg.MediaDir, cfg.BaseURL)

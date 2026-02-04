@@ -228,11 +228,11 @@ func TestGetPendingEpisodes(t *testing.T) {
 	feedID := feeds[0].ID
 
 	// Create multiple episodes
-	db.CreateEpisode(feedID, "", "Pending 1", "", "", "http://youtube.com/watch?v=1")
-	db.CreateEpisode(feedID, "", "Pending 2", "", "", "http://youtube.com/watch?v=2")
+	_, _ = db.CreateEpisode(feedID, "", "Pending 1", "", "", "http://youtube.com/watch?v=1")
+	_, _ = db.CreateEpisode(feedID, "", "Pending 2", "", "", "http://youtube.com/watch?v=2")
 
 	ep3, _ := db.CreateEpisode(feedID, "", "Not Pending", "", "", "http://youtube.com/watch?v=3")
-	db.UpdateEpisodeStatus(ep3.ID, StatusReady, "")
+	_ = db.UpdateEpisodeStatus(ep3.ID, StatusReady, "")
 
 	pending, err := db.GetPendingEpisodes()
 	if err != nil {
@@ -294,7 +294,7 @@ func TestEpisodeExistsForSource(t *testing.T) {
 	}
 
 	// Create episode
-	db.CreateEpisode(feedID, "", "Test", "", "", sourceURL)
+	_, _ = db.CreateEpisode(feedID, "", "Test", "", "", sourceURL)
 
 	// Should exist now
 	exists, err = db.EpisodeExistsForSource(sourceURL, feedID)
@@ -315,9 +315,9 @@ func TestGetReadyEpisodesByFeed(t *testing.T) {
 
 	// Create episodes with different statuses
 	ep1, _ := db.CreateEpisode(feedID, "", "Ready Episode", "", "", "http://youtube.com/watch?v=1")
-	db.UpdateEpisodeAudio(ep1.ID, "http://example.com/audio.mp3", 300)
+	_ = db.UpdateEpisodeAudio(ep1.ID, "http://example.com/audio.mp3", 300)
 
-	db.CreateEpisode(feedID, "", "Pending Episode", "", "", "http://youtube.com/watch?v=2")
+	_, _ = db.CreateEpisode(feedID, "", "Pending Episode", "", "", "http://youtube.com/watch?v=2")
 
 	ready, err := db.GetReadyEpisodesByFeed(feedID)
 	if err != nil {

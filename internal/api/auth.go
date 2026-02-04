@@ -60,7 +60,7 @@ func (s *Server) getSetupStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(SetupStatusResponse{
+	_ = json.NewEncoder(w).Encode(SetupStatusResponse{
 		SetupRequired: count == 0,
 	})
 }
@@ -114,7 +114,7 @@ func (s *Server) setup(w http.ResponseWriter, r *http.Request) {
 	// Set session cookie
 	setSessionCookie(w, session.ID, session.ExpiresAt)
 
-	json.NewEncoder(w).Encode(AuthResponse{
+	_ = json.NewEncoder(w).Encode(AuthResponse{
 		Success: true,
 		Message: "setup complete",
 		User: &User{
@@ -159,7 +159,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	// Set session cookie
 	setSessionCookie(w, session.ID, session.ExpiresAt)
 
-	json.NewEncoder(w).Encode(AuthResponse{
+	_ = json.NewEncoder(w).Encode(AuthResponse{
 		Success: true,
 		User: &User{
 			ID:       user.ID,
@@ -173,7 +173,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err == nil {
-		s.db.DeleteSession(cookie.Value)
+		_ = s.db.DeleteSession(cookie.Value)
 	}
 
 	// Clear session cookie
@@ -186,7 +186,7 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	json.NewEncoder(w).Encode(AuthResponse{
+	_ = json.NewEncoder(w).Encode(AuthResponse{
 		Success: true,
 		Message: "logged out",
 	})
@@ -201,7 +201,7 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(AuthResponse{
+	_ = json.NewEncoder(w).Encode(AuthResponse{
 		Success: true,
 		User: &User{
 			ID:       user.ID,
@@ -242,24 +242,6 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 		// Add user to context
 		ctx := context.WithValue(r.Context(), userContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-// optionalAuthMiddleware adds user to context if authenticated, but doesn't require it
-func (s *Server) optionalAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(sessionCookieName)
-		if err == nil {
-			session, _ := s.db.GetSession(cookie.Value)
-			if session != nil {
-				user, _ := s.db.GetUserByID(session.UserID)
-				if user != nil {
-					ctx := context.WithValue(r.Context(), userContextKey, user)
-					r = r.WithContext(ctx)
-				}
-			}
-		}
-		next.ServeHTTP(w, r)
 	})
 }
 

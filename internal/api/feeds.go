@@ -35,7 +35,7 @@ func (s *Server) listFeeds(w http.ResponseWriter, r *http.Request) {
 		feeds = []database.Feed{}
 	}
 
-	json.NewEncoder(w).Encode(feeds)
+	_ = json.NewEncoder(w).Encode(feeds)
 }
 
 // createFeed creates a new feed
@@ -77,7 +77,7 @@ func (s *Server) getFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(feed)
+	_ = json.NewEncoder(w).Encode(feed)
 }
 
 // updateFeed updates an existing feed
@@ -114,7 +114,7 @@ func (s *Server) updateFeed(w http.ResponseWriter, r *http.Request) {
 
 	// Return updated feed
 	updatedFeed, _ := s.db.GetFeed(id)
-	json.NewEncoder(w).Encode(updatedFeed)
+	_ = json.NewEncoder(w).Encode(updatedFeed)
 }
 
 // deleteFeed deletes a feed
@@ -185,5 +185,5 @@ func (s *Server) getFeedRSS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/rss+xml; charset=utf-8")
-	w.Write(rss)
+	_, _ = w.Write(rss)
 }

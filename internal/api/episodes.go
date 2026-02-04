@@ -73,7 +73,7 @@ func (s *Server) listEpisodes(w http.ResponseWriter, r *http.Request) {
 		episodes = []database.Episode{}
 	}
 
-	json.NewEncoder(w).Encode(episodes)
+	_ = json.NewEncoder(w).Encode(episodes)
 }
 
 // listAllEpisodes returns all episodes across all feeds
@@ -89,7 +89,7 @@ func (s *Server) listAllEpisodes(w http.ResponseWriter, r *http.Request) {
 		episodes = []database.Episode{}
 	}
 
-	json.NewEncoder(w).Encode(episodes)
+	_ = json.NewEncoder(w).Encode(episodes)
 }
 
 // createEpisode adds a new episode to a feed from a URL
@@ -161,7 +161,7 @@ func (s *Server) getEpisode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(episode)
+	_ = json.NewEncoder(w).Encode(episode)
 }
 
 // updateEpisode updates an episode's metadata
@@ -203,7 +203,7 @@ func (s *Server) updateEpisode(w http.ResponseWriter, r *http.Request) {
 
 	// Return updated episode
 	updated, _ := s.db.GetEpisode(id)
-	json.NewEncoder(w).Encode(updated)
+	_ = json.NewEncoder(w).Encode(updated)
 }
 
 // deleteEpisode deletes an episode
@@ -224,7 +224,7 @@ func (s *Server) deleteEpisode(w http.ResponseWriter, r *http.Request) {
 
 	// Delete the audio file if it exists
 	audioPath := filepath.Join(s.config.MediaDir, id+".mp3")
-	os.Remove(audioPath)
+	_ = os.Remove(audioPath)
 
 	if err := s.db.DeleteEpisode(id); err != nil {
 		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
@@ -264,7 +264,7 @@ func (s *Server) retryEpisode(w http.ResponseWriter, r *http.Request) {
 
 	// Return updated episode
 	updated, _ := s.db.GetEpisode(id)
-	json.NewEncoder(w).Encode(updated)
+	_ = json.NewEncoder(w).Encode(updated)
 }
 
 // uploadEpisode handles file uploads and creates an episode
@@ -294,7 +294,7 @@ func (s *Server) uploadEpisode(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "file_error", "no file provided: "+err.Error())
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Validate file extension
 	ext := strings.ToLower(filepath.Ext(header.Filename))
@@ -320,36 +320,36 @@ func (s *Server) uploadEpisode(w http.ResponseWriter, r *http.Request) {
 	// Save uploaded file temporarily
 	tempPath := filepath.Join(s.config.MediaDir, "upload_"+episode.ID+ext)
 	if err := os.MkdirAll(s.config.MediaDir, 0755); err != nil {
-		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create media dir")
+		_ = s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create media dir")
 		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
 		return
 	}
 
 	tempFile, err := os.Create(tempPath)
 	if err != nil {
-		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create temp file")
+		_ = s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create temp file")
 		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
 		return
 	}
 
 	_, err = io.Copy(tempFile, file)
-	tempFile.Close()
+	_ = tempFile.Close()
 	if err != nil {
 		os.Remove(tempPath)
-		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to save file")
+		_ = s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to save file")
 		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
 		return
 	}
 
 	// Convert to MP3 using ffmpeg
-	s.db.UpdateEpisodeStatus(episode.ID, database.StatusDownloading, "")
+	_ = s.db.UpdateEpisodeStatus(episode.ID, database.StatusDownloading, "")
 	audioURL, duration, err := s.downloader.ConvertToMP3(tempPath, episode.ID)
 
 	// Clean up temp file
 	os.Remove(tempPath)
 
 	if err != nil {
-		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, err.Error())
+		_ = s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, err.Error())
 		writeError(w, http.StatusInternalServerError, "conversion_error", err.Error())
 		return
 	}

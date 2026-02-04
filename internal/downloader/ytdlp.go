@@ -78,14 +78,14 @@ func (d *Downloader) processPending(ctx context.Context) {
 		default:
 			if err := d.downloadEpisode(ctx, &ep); err != nil {
 				log.Printf("Error downloading episode %s: %v", ep.ID, err)
-				d.db.UpdateEpisodeStatus(ep.ID, database.StatusError, err.Error())
+				_ = d.db.UpdateEpisodeStatus(ep.ID, database.StatusError, err.Error())
 			}
 		}
 	}
 }
 
 func (d *Downloader) downloadEpisode(ctx context.Context, ep *database.Episode) error {
-	d.db.UpdateEpisodeStatus(ep.ID, database.StatusDownloading, "")
+	_ = d.db.UpdateEpisodeStatus(ep.ID, database.StatusDownloading, "")
 
 	// Ensure media directory exists
 	if err := os.MkdirAll(d.mediaDir, 0755); err != nil {
@@ -132,7 +132,7 @@ func (d *Downloader) getDuration(path string) int {
 	}
 
 	var duration float64
-	fmt.Sscanf(strings.TrimSpace(string(output)), "%f", &duration)
+	_, _ = fmt.Sscanf(strings.TrimSpace(string(output)), "%f", &duration)
 	return int(duration)
 }
 
@@ -290,7 +290,7 @@ func (d *Downloader) checkSource(ctx context.Context, src *database.Source) {
 		}
 	}
 
-	d.db.UpdateSourceLastChecked(src.ID)
+	_ = d.db.UpdateSourceLastChecked(src.ID)
 }
 
 func (d *Downloader) AddSource(feedID, url string, includeBackCatalog bool) (*database.Source, error) {
@@ -373,7 +373,7 @@ func (d *Downloader) updateFeedImageIfNeeded(feedID, imageURL string) {
 	}
 
 	if feed.ImageURL == "" {
-		d.db.UpdateFeedImage(feedID, imageURL)
+		_ = d.db.UpdateFeedImage(feedID, imageURL)
 	}
 }
 
@@ -417,7 +417,7 @@ func (d *Downloader) RefreshSource(src *database.Source) {
 
 	if src.Type == database.SourceTypeVideo {
 		// Single videos don't need refreshing
-		d.db.UpdateSourceLastChecked(src.ID)
+		_ = d.db.UpdateSourceLastChecked(src.ID)
 		return
 	}
 
@@ -454,5 +454,5 @@ func (d *Downloader) RefreshSource(src *database.Source) {
 	}
 
 	log.Printf("Refresh complete for source %s: %d new episodes", src.ID, newCount)
-	d.db.UpdateSourceLastChecked(src.ID)
+	_ = d.db.UpdateSourceLastChecked(src.ID)
 }

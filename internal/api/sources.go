@@ -41,7 +41,7 @@ func (s *Server) listSources(w http.ResponseWriter, r *http.Request) {
 		sources = []database.Source{}
 	}
 
-	json.NewEncoder(w).Encode(sources)
+	_ = json.NewEncoder(w).Encode(sources)
 }
 
 // listAllSources returns all sources across all feeds
@@ -57,7 +57,7 @@ func (s *Server) listAllSources(w http.ResponseWriter, r *http.Request) {
 		sources = []database.Source{}
 	}
 
-	json.NewEncoder(w).Encode(sources)
+	_ = json.NewEncoder(w).Encode(sources)
 }
 
 // createSource adds a new source to a feed
@@ -118,7 +118,7 @@ func (s *Server) getSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(source)
+	_ = json.NewEncoder(w).Encode(source)
 }
 
 // deleteSource deletes a source
@@ -164,7 +164,7 @@ func (s *Server) refreshSource(w http.ResponseWriter, r *http.Request) {
 	// Trigger refresh in background
 	go s.downloader.RefreshSource(source)
 
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"message": "source refresh started",
 		"source":  source,

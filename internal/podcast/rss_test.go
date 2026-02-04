@@ -2,6 +2,7 @@ package podcast
 
 import (
 	"encoding/xml"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -81,13 +82,13 @@ func TestGenerateFeed(t *testing.T) {
 
 	if item.Enclosure == nil {
 		t.Error("expected enclosure to be set")
-	} else if item.Enclosure.URL != "http://example.com/ep1.mp3" {
-		t.Errorf("expected enclosure URL 'http://example.com/ep1.mp3', got '%s'", item.Enclosure.URL)
+	} else if item.Enclosure.URL != "http://localhost:8080/api/media/ep-1.mp3" {
+		t.Errorf("expected enclosure URL 'http://localhost:8080/api/media/ep-1.mp3', got '%s'", item.Enclosure.URL)
 	}
 
-	// Verify duration formatting (1:00:00)
-	if item.ITunesDuration != "1:00:00" {
-		t.Errorf("expected duration '1:00:00', got '%s'", item.ITunesDuration)
+	// Verify duration formatting (1:00:00) - check raw XML since namespace unmarshaling is tricky
+	if !strings.Contains(string(rss), "<itunes:duration>1:00:00</itunes:duration>") {
+		t.Error("expected duration '1:00:00' in RSS output")
 	}
 
 	// Verify XML header
@@ -143,20 +144,19 @@ func TestDurationFormatting(t *testing.T) {
 				ID:       "test",
 				Duration: tt.duration,
 				AudioURL: "http://example.com/audio.mp3",
+				Status:   database.StatusReady,
 			},
 		}
 
-		rss, _ := GenerateFeed(feed, episodes, "http://localhost:8080")
-
-		var result RSS
-		xml.Unmarshal(rss, &result)
-
-		if len(result.Channel.Items) == 0 {
-			t.Fatal("no items in feed")
+		rss, err := GenerateFeed(feed, episodes, "http://localhost:8080")
+		if err != nil {
+			t.Fatalf("failed to generate feed: %v", err)
 		}
 
-		if result.Channel.Items[0].ITunesDuration != tt.expected {
-			t.Errorf("duration %d: expected '%s', got '%s'", tt.duration, tt.expected, result.Channel.Items[0].ITunesDuration)
+		// Check raw XML since namespace unmarshaling is tricky
+		expected := fmt.Sprintf("<itunes:duration>%s</itunes:duration>", tt.expected)
+		if !strings.Contains(string(rss), expected) {
+			t.Errorf("duration %d: expected '%s' in RSS output", tt.duration, tt.expected)
 		}
 	}
 }
