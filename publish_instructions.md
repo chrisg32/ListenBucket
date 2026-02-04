@@ -26,11 +26,11 @@ This document describes how to publish ListenBucket container images to Docker H
 docker build -t theonecalledchris/listenbucket:latest .
 
 # Tag with version
-docker tag theonecalledchris/listenbucket:latest theonecalledchris/listenbucket:v1.0.0
+docker tag theonecalledchris/listenbucket:latest theonecalledchris/listenbucket:v1.1.0
 
 # Push to Docker Hub
 docker push theonecalledchris/listenbucket:latest
-docker push theonecalledchris/listenbucket:v1.0.0
+docker push theonecalledchris/listenbucket:v1.1.0
 ```
 
 ### Multi-Architecture Build (Recommended)
@@ -45,7 +45,7 @@ docker buildx create --name multiarch --use
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t theonecalledchris/listenbucket:latest \
-  -t theonecalledchris/listenbucket:v1.0.0 \
+  -t theonecalledchris/listenbucket:v1.1.0 \
   --push \
   .
 ```
@@ -70,11 +70,11 @@ docker buildx build \
 docker build -t ghcr.io/listenbucket/listenbucket:latest .
 
 # Tag with version
-docker tag ghcr.io/listenbucket/listenbucket:latest ghcr.io/listenbucket/listenbucket:v1.0.0
+docker tag ghcr.io/listenbucket/listenbucket:latest ghcr.io/listenbucket/listenbucket:v1.1.0
 
 # Push to GHCR
 docker push ghcr.io/listenbucket/listenbucket:latest
-docker push ghcr.io/listenbucket/listenbucket:v1.0.0
+docker push ghcr.io/listenbucket/listenbucket:v1.1.0
 ```
 
 ### Multi-Architecture Build
@@ -83,7 +83,7 @@ docker push ghcr.io/listenbucket/listenbucket:v1.0.0
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t ghcr.io/listenbucket/listenbucket:latest \
-  -t ghcr.io/listenbucket/listenbucket:v1.0.0 \
+  -t ghcr.io/listenbucket/listenbucket:v1.1.0 \
   --push \
   .
 ```
@@ -99,8 +99,8 @@ The repository includes GitHub Actions workflows for automated publishing:
 
 1. Tag the release:
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   git tag v1.1.0
+   git push origin v1.1.0
    ```
 
 2. The release workflow will automatically:
@@ -122,7 +122,7 @@ GHCR uses the built-in `GITHUB_TOKEN` automatically.
 ## Version Tagging Strategy
 
 - `latest` - Most recent build from main branch
-- `v1.0.0` - Specific version release
+- `v1.1.0` - Specific version release
 - `v1.0` - Latest patch for v1.0.x
 - `v1` - Latest minor/patch for v1.x.x
 

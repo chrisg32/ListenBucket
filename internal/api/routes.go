@@ -171,7 +171,7 @@ func writeJSON(w http.ResponseWriter, code int, data interface{}) {
 func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "healthy",
-		"version": "1.0.0",
+		"version": "1.1.0",
 	})
 }
 
