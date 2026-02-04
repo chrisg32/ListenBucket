@@ -1,0 +1,54 @@
+@page "/Settings"
+@using BlazorStrap
+@using ListenBucket.ViewModels
+@using BlazorStrap.Extensions.FluentValidation
+@inject SettingsViewModel ViewModel
+@rendermode InteractiveServer
+
+<BSForm Model="ViewModel" OnValidSubmit="ViewModel.SaveSettings" style="max-width: 750px; margin: auto;">
+    <FluentValidator TValidator="SettingsViewModelValidator"/>
+
+    <h3>Settings</h3>
+
+    <h5>Google API Key</h5>
+    <BSInput InputType="InputType.Text" placeholder="Google API Key" @bind-Value="ViewModel.GoogleApiKey" MarginBottom="Margins.Medium"/>
+    <ValidationMessage For="@(() => ViewModel.GoogleApiKey)"/>
+
+    <h5>Refresh frequency</h5>
+    @foreach (var chron in ViewModel.PollChronSettings)
+    {
+        <p>
+            <BSInputGroup MarginBottom="Margins.Medium">
+                <BSInput InputType="InputType.Text" placeholder="*"  @bind-Value="@chron.Minute"/>
+                <span class="@BS.Input_Group_Text" >Minute</span>
+                <BSInput InputType="InputType.Text" placeholder="*"  @bind-Value="@chron.Hour"/>
+                <span class="@BS.Input_Group_Text" >Hour</span>
+                <BSInput InputType="InputType.Text" placeholder="*"  @bind-Value="@chron.Day"/>
+                <span class="@BS.Input_Group_Text" >Day of Month</span>
+                <BSInput InputType="InputType.Text" placeholder="*"  @bind-Value="@chron.Month"/>
+                <span class="@BS.Input_Group_Text" >Month</span>
+                <BSInput InputType="InputType.Text" placeholder="*"  @bind-Value="@chron.DayOfWeek"/>
+                <span class="@BS.Input_Group_Text" >Day of Week</span>
+                <BSButton @onclick="@(() => ViewModel.PollChronSettings.Remove(chron))" Color="BSColor.Danger">X</BSButton>
+            </BSInputGroup>
+            <ValidationMessage For="@(() => chron.Minute)" />
+            <ValidationMessage For="@(() => chron.Hour)" />
+            <ValidationMessage For="@(() => chron.Day)" />
+            <ValidationMessage For="@(() => chron.Month)" />
+            <ValidationMessage For="@(() => chron.DayOfWeek)" />
+        </p>
+    }
+    <ValidationMessage For="@(() => ViewModel.PollChronSettings)" />
+    <p><BSButton @onclick="@ViewModel.AddPollChron" Color="BSColor.Primary">+ Add frequency</BSButton></p>
+    
+    <p><BSButton IsSubmit="true" Color="BSColor.Primary">Save</BSButton></p>
+
+</BSForm>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.Load();
+    }
+}

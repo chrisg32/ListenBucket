@@ -1,0 +1,47 @@
+@page "/Podcasts"
+@page "/"
+@using ListenBucket.Extensions
+@rendermode InteractiveServer
+@inject ViewModels.PodcastsViewModel ViewModel;
+<h3>Podcasts</h3>
+
+<div class="input-group">
+    <input @bind-value="ViewModel.Url" type="text" class="form-control" placeholder="Link to YouTube">
+    <button type="button" class="btn btn-primary" @onclick="ViewModel.Add">Add</button>
+</div>
+@foreach (var item in ViewModel.Podcasts)
+{
+    <div class="card mt-3 mx-auto" style="max-width: 700px; height: 120px;">
+        <div class="row g-0">
+            <div class="col-md-auto">
+                <a href="@item.Source" target="_blank"><img src="@item.ThumbnailUrl" class="img-fluid rounded-start" alt="..." style="object-fit: cover; height: 120px;"></a>
+            </div>
+            <div class="col">
+                <div class="card-body p-1">
+                    <div class="container-fluid p-0">
+                        <div class="row">
+                            <div class="col-auto">
+                                <a href="@item.Source" target="_blank" style="text-decoration: none; color: inherit;"><h5 class="card-title">@item.Title</h5></a>
+                            </div>
+                            <div class="col">
+                                <p class="card-text"><small class="text-muted">@(item.EpisodeCount == null ? string.Empty : $"{item.EpisodeCount} Episodes")</small></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <p class="card-text"><small class="text-muted">@item.Description</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.Load();
+    }
+}

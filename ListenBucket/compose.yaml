@@ -1,0 +1,6 @@
+﻿services:
+  listenbucket:
+    image: listenbucket
+    build:
+      context: .
+      dockerfile: ListenBucket/Dockerfile

@@ -1,0 +1,59 @@
+@page "/listenLater"
+@inject ViewModels.ListenLaterViewModel ViewModel;
+@using ListenBucket.Extensions
+@rendermode InteractiveServer
+<h3>Listen Later</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <img src="lb.png" class="w-100" alt="Listen Bucket Icon"/>
+            <div class="mb-3 d-flex justify-content-center gap-3">
+                <a href="/feed/listen-later" target="_blank" title="Raw Podcast Feed">
+                    <img src="podcast.svg" alt="Podcast" style="height: 32px; width: 32px;" />
+                </a>
+                <a href="podcasts://subscribe?url=@ViewModel.FeedUrl" target="_blank" title="Apple Podcasts">
+                    <img src="podcast.svg" alt="Podcast" style="height: 32px; width: 32px;" />
+                </a>
+                <a href="overcast://x-callback-url/add?url=@ViewModel.FeedUrl" target="_blank" title="Overcast">
+                    <img src="overcast.svg" alt="Overcast" style="height: 32px; width: 32px;" />
+                </a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h6>Add Items</h6>
+
+            <div class="input-group w-60">
+                <input @bind-value="ViewModel.Url" type="text" class="form-control" placeholder="Link to YouTube">
+                <button type="button" class="btn btn-primary" @onclick="ViewModel.Add">Add</button>
+            </div>
+            
+            @foreach (var item in ViewModel.Items)
+            {
+                <div class="card mt-3 mx-auto">
+                    <div class="d-flex flex-row">
+                        <div style="flex: 0 0 175px;">
+                            <img src="@item.ThumbnailUrl" class="img-fluid rounded-start" alt="..." style="object-fit: cover; height: 120px; width: 120px; min-width: -webkit-fill-available; min-height: -webkit-fill-available;">
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="card-body">
+                                <p class="card-text"><small class="text-muted">@(item.AddedAt?.ToString("yyyy-MM-dd hh:mm tt") ?? string.Empty)</small></p>
+                                <h5 class="card-title">@item.Title</h5>
+                                <p class="card-text"><small class="text-muted">@item.Duration.Format()</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ViewModel.Load();
+    }
+
+}
