@@ -1,62 +1,17 @@
 //AI: Do not do any tasks tagged @human
 Tasks:
-  ✔ Fix issue with accessing mp3s from other devices @bug @ai @critical @done
-    RSS feed now dynamically uses request host for audio URLs
-    Frontend uses relative URLs (/api/media/{id}.mp3)
-  ✔ Fix long descriptions make episode/source cards wider than the screen on mobile @bug @ai @done
-    Added overflow-hidden, min-w-0, and break-words to card components
-  ✔ Make the overcast button orange to match the overcast color (but still match the ListenBucket pallet) @ai @done
-    Changed from blue to orange-100/orange-600/orange-900 colors
-  ✔ Change the audioplayer to use amplitude.js and theme it to watch the site @ai @done
-    Created custom AudioPlayer.vue component with themed UI (primary colors, dark mode support)
-    Uses native HTML5 audio element with custom controls for better multi-instance support
-  ✔ Make any changes nessesary to support audio scrubbing/seeking @ai @done
-    AudioPlayer supports click-to-seek and drag-to-seek (mouse + touch)
-    Progress bar shows current position with draggable handle
-  ✔ Change RSS button to be gray @ai @done
-    Changed from orange to gray-200/gray-700 colors
-  ✔ Change RSS button to yellow @ai @done
-    Changed to yellow-100/yellow-700/yellow-900 colors
-  ✔ Create a publish_instructions.md file with instructions on how to deploy to DockerHub (and/or GitHub if it supports publishing container images) @ai @done
-    Created publish_instructions.md with Docker Hub and GHCR instructions
-  ✔ Create unit tests for anythig testable @ai @done
-    Created internal/database/db_test.go with comprehensive tests
-  ✔ Create a GitHub action CI/CD that will build and test that application @ai @done
-    Created .github/workflows/ci.yml - runs tests, lint, and Docker build
-  ✔ Make changes to README.md to be more typical of an open source project of this type @ai @done
-    Restructured with badges, concise sections, collapsible API reference
-  ✔ Copy any instructions about the project design into a new file for AI agents to reference (moved from README) @ai @done
-    Created ARCHITECTURE.md with full technical documentation
-  ✔ Create a GitHub action for building and publishing to GitHub @ai @done
-    Created .github/workflows/release.yml - builds multi-arch images, pushes to Docker Hub and GHCR
-  ✔ Update the README with relevant badges (build, test coverage, etc.) @ai @done
-    Added CI, Release, Go Report Card, and License badges
-  ✔ Add ListenBucket logo to the repo @human @done (26-02-02 17:00)
-    Added listen-later.png
-  ✔ After logo is available, replace the ListenLater feed image with the ListenBucket logo rather than from sources @ai @done
-    RSS feeds now use /api/logo.png when feed has no image
-    Logo embedded in Go binary via internal/assets
-  ✔ After the logo is available, set the favicon to the logo @ai @done
-    Updated web/index.html to use /logo.png as favicon
-    Copied logo to web/public/logo.png
-  ✔ Fix the ListenLater feed image is not the ListenBucket logo or the webpage cannot locate the image @ai @bug @done
-    Updated FeedCard.vue and FeedView.vue to use /logo.png as fallback when image_url is empty
-  ✔ The image in the README is too big. Please constrain the size of the image. @ai @done
-    Used HTML img tag with width="200" and centered alignment
   ✔ Change the license from MIT to Apache-2.0. @ai @done
     Updated LICENSE file to Apache 2.0, updated README badge and license section
-    ☐ Directly upload a file or a video (file upload)
+    ☐ Directly upload a file or a video (file upload) @ai
+      ☐ UI
+        ☐ Selecting a file
+        ☐ Drag and drop file
+      ☐ API upload
+      ☐ File type validation (support audio and video files supported by ffmpeg that can be converted into an mp3)
     ✘ Multiple users @cancelled (26-02-02 21:54)
-    ☐ Authentication/Authorization (for everything except feed downloads)
+    ☐ Authentication/Authorization (for everything except feed downloads) @ai
       ☐ Need an initial onboarding screen creating the initial account
     ✘ Cloud mirroring - will upload feed contents (xml + mp3s) to a cloud provider and use the external cloud provider link for opening in podcast apps, easy way to get around firewalls @cancelled (26-02-02 21:52)
       ✘ S3 bucket mirror @cancelled (26-02-02 21:52)
-  ✔ Ensure no youtube APIs are used and instead rely entirely on yt-dlp for collecting and meta data @ai @done
-    Verified - no YouTube APIs used, relies entirely on yt-dlp
-  ✔ Remove the mention of YouTube from the README. Reword the description to indicate this is a persinal "format shifting" tool. @ai @done
-    Reworded as "personal format-shifting tool for audio content"
-    Removed YouTube mentions, made URLs generic
-  ✔ Add a very brief disclosure that we do not condone or support copyright infringement and it is up to the user to use the tool (emphasise tool) at their own discresion. Also add a note encouraging users to support the platforms and creators that consume. @ai @done
-    Added Disclaimer section with copyright notice and creator support message
-  ✔ Fix: after installer from docker hub, I cannot access localhost. It seems that the publically exposed port is missing. Also, the default name of the running container is a random name. I would like it to default to ListenBucket. Fix these issue with the docker container. I installed from DockerHub using 'docker run --rm theonecalledchris/listenbucket:latest' @ai @done
-    Updated README.md and publish_instructions.md with correct image name (theonecalledchris/listenbucket) and proper docker run commands including -p 8080:8080 and --name listenbucket flags
+   ☐ Create a data migration strategy... the app needs to be able to be updated in place. New versions should be compatible with older databases and "upgrade/migrate" the database as needed. Use an existing, maintained, tools or packages to do this if possible rather than reinventing the wheel. Ask me to confirm the strategy before implementing. @ai @critical
+   ☐ Open a PR to add to casaos store casa_os_todo.md https://github.com/IceWhaleTech/CasaOS-AppStore/blob/main/CONTRIBUTING.md @human
