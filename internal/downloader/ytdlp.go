@@ -96,11 +96,11 @@ func (d *Downloader) downloadEpisode(ctx context.Context, ep *database.Episode) 
 
 	// Use yt-dlp to download and convert to mp3
 	cmd := exec.CommandContext(ctx, "yt-dlp",
-		"-x",                     // Extract audio
-		"--audio-format", "mp3",  // Convert to mp3
-		"--audio-quality", "0",   // Best quality
-		"-o", outputPath,         // Output path
-		"--no-playlist",          // Don't download playlist
+		"-x",                    // Extract audio
+		"--audio-format", "mp3", // Convert to mp3
+		"--audio-quality", "0", // Best quality
+		"-o", outputPath, // Output path
+		"--no-playlist", // Don't download playlist
 		ep.SourceURL,
 	)
 

@@ -17,19 +17,19 @@ type RSS struct {
 }
 
 type Channel struct {
-	Title       string      `xml:"title"`
-	Link        string      `xml:"link"`
-	Description string      `xml:"description"`
-	Language    string      `xml:"language"`
-	Copyright   string      `xml:"copyright"`
-	LastBuild   string      `xml:"lastBuildDate"`
-	Image       *Image      `xml:"image,omitempty"`
-	ITunesImage *ITunesImage `xml:"itunes:image,omitempty"`
-	ITunesAuthor string     `xml:"itunes:author"`
-	ITunesExplicit string   `xml:"itunes:explicit"`
+	Title          string          `xml:"title"`
+	Link           string          `xml:"link"`
+	Description    string          `xml:"description"`
+	Language       string          `xml:"language"`
+	Copyright      string          `xml:"copyright"`
+	LastBuild      string          `xml:"lastBuildDate"`
+	Image          *Image          `xml:"image,omitempty"`
+	ITunesImage    *ITunesImage    `xml:"itunes:image,omitempty"`
+	ITunesAuthor   string          `xml:"itunes:author"`
+	ITunesExplicit string          `xml:"itunes:explicit"`
 	ITunesCategory *ITunesCategory `xml:"itunes:category,omitempty"`
-	AtomLink    *AtomLink   `xml:"atom:link,omitempty"`
-	Items       []Item      `xml:"item"`
+	AtomLink       *AtomLink       `xml:"atom:link,omitempty"`
+	Items          []Item          `xml:"item"`
 }
 
 type Image struct {
@@ -53,15 +53,15 @@ type AtomLink struct {
 }
 
 type Item struct {
-	Title       string       `xml:"title"`
-	Link        string       `xml:"link,omitempty"`
-	Description string       `xml:"description"`
-	GUID        GUID         `xml:"guid"`
-	PubDate     string       `xml:"pubDate"`
-	Enclosure   *Enclosure   `xml:"enclosure,omitempty"`
-	ITunesImage *ITunesImage `xml:"itunes:image,omitempty"`
-	ITunesDuration string    `xml:"itunes:duration,omitempty"`
-	ITunesExplicit string    `xml:"itunes:explicit"`
+	Title          string       `xml:"title"`
+	Link           string       `xml:"link,omitempty"`
+	Description    string       `xml:"description"`
+	GUID           GUID         `xml:"guid"`
+	PubDate        string       `xml:"pubDate"`
+	Enclosure      *Enclosure   `xml:"enclosure,omitempty"`
+	ITunesImage    *ITunesImage `xml:"itunes:image,omitempty"`
+	ITunesDuration string       `xml:"itunes:duration,omitempty"`
+	ITunesExplicit string       `xml:"itunes:explicit"`
 }
 
 type GUID struct {
@@ -83,13 +83,13 @@ func GenerateFeed(feed *database.Feed, episodes []database.Episode, baseURL stri
 		ITunes:  "http://www.itunes.com/dtds/podcast-1.0.dtd",
 		Atom:    "http://www.w3.org/2005/Atom",
 		Channel: Channel{
-			Title:       feed.Title,
-			Link:        feedURL,
-			Description: feed.Description,
-			Language:    "en-us",
-			Copyright:   fmt.Sprintf("© %d", time.Now().Year()),
-			LastBuild:   feed.UpdatedAt.Format(time.RFC1123Z),
-			ITunesAuthor: "ListenBucket",
+			Title:          feed.Title,
+			Link:           feedURL,
+			Description:    feed.Description,
+			Language:       "en-us",
+			Copyright:      fmt.Sprintf("© %d", time.Now().Year()),
+			LastBuild:      feed.UpdatedAt.Format(time.RFC1123Z),
+			ITunesAuthor:   "ListenBucket",
 			ITunesExplicit: "no",
 			ITunesCategory: &ITunesCategory{Text: "Technology"},
 			AtomLink: &AtomLink{

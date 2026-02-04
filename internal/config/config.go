@@ -6,22 +6,22 @@ import (
 )
 
 type Config struct {
-	Port        string
-	DataDir     string
+	Port         string
+	DataDir      string
 	DatabasePath string
-	MediaDir    string
-	BaseURL     string
+	MediaDir     string
+	BaseURL      string
 }
 
 func Load() *Config {
 	dataDir := getEnv("DATA_DIR", "./data")
 
 	return &Config{
-		Port:        getEnv("PORT", "8080"),
-		DataDir:     dataDir,
+		Port:         getEnv("PORT", "8080"),
+		DataDir:      dataDir,
 		DatabasePath: filepath.Join(dataDir, "listenbucket.db"),
-		MediaDir:    filepath.Join(dataDir, "media"),
-		BaseURL:     getEnv("BASE_URL", "http://localhost:8080"),
+		MediaDir:     filepath.Join(dataDir, "media"),
+		BaseURL:      getEnv("BASE_URL", "http://localhost:8080"),
 	}
 }
 

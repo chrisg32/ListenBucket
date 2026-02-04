@@ -59,33 +59,33 @@ func (s *Server) SetupRoutes(webFS embed.FS) http.Handler {
 		r.Get("/health", s.healthCheck)
 
 		// Feeds - RESTful CRUD
-		r.Get("/feeds", s.listFeeds)             // GET /api/feeds - List all feeds
-		r.Post("/feeds", s.createFeed)           // POST /api/feeds - Create new feed
-		r.Get("/feeds/{feedId}", s.getFeed)      // GET /api/feeds/{feedId} - Get feed
-		r.Put("/feeds/{feedId}", s.updateFeed)   // PUT /api/feeds/{feedId} - Update feed
-		r.Delete("/feeds/{feedId}", s.deleteFeed) // DELETE /api/feeds/{feedId} - Delete feed
-		r.Get("/feeds/{feedId}/rss", s.getFeedRSS) // GET /api/feeds/{feedId}/rss - Get RSS XML
+		r.Get("/feeds", s.listFeeds)
+		r.Post("/feeds", s.createFeed)
+		r.Get("/feeds/{feedId}", s.getFeed)
+		r.Put("/feeds/{feedId}", s.updateFeed)
+		r.Delete("/feeds/{feedId}", s.deleteFeed)
+		r.Get("/feeds/{feedId}/rss", s.getFeedRSS)
 
 		// Episodes nested under feeds
-		r.Get("/feeds/{feedId}/episodes", s.listEpisodes)   // GET /api/feeds/{feedId}/episodes
-		r.Post("/feeds/{feedId}/episodes", s.createEpisode) // POST /api/feeds/{feedId}/episodes
+		r.Get("/feeds/{feedId}/episodes", s.listEpisodes)
+		r.Post("/feeds/{feedId}/episodes", s.createEpisode)
 
 		// Sources nested under feeds
-		r.Get("/feeds/{feedId}/sources", s.listSources)   // GET /api/feeds/{feedId}/sources
-		r.Post("/feeds/{feedId}/sources", s.createSource) // POST /api/feeds/{feedId}/sources
+		r.Get("/feeds/{feedId}/sources", s.listSources)
+		r.Post("/feeds/{feedId}/sources", s.createSource)
 
 		// Episodes - direct access by ID
-		r.Get("/episodes", s.listAllEpisodes)              // GET /api/episodes - List all episodes
-		r.Get("/episodes/{episodeId}", s.getEpisode)       // GET /api/episodes/{episodeId}
-		r.Put("/episodes/{episodeId}", s.updateEpisode)    // PUT /api/episodes/{episodeId}
-		r.Delete("/episodes/{episodeId}", s.deleteEpisode) // DELETE /api/episodes/{episodeId}
-		r.Post("/episodes/{episodeId}/retry", s.retryEpisode) // POST /api/episodes/{episodeId}/retry
+		r.Get("/episodes", s.listAllEpisodes)
+		r.Get("/episodes/{episodeId}", s.getEpisode)
+		r.Put("/episodes/{episodeId}", s.updateEpisode)
+		r.Delete("/episodes/{episodeId}", s.deleteEpisode)
+		r.Post("/episodes/{episodeId}/retry", s.retryEpisode)
 
 		// Sources - direct access by ID
-		r.Get("/sources", s.listAllSources)                // GET /api/sources - List all sources
-		r.Get("/sources/{sourceId}", s.getSource)          // GET /api/sources/{sourceId}
-		r.Delete("/sources/{sourceId}", s.deleteSource)    // DELETE /api/sources/{sourceId}
-		r.Post("/sources/{sourceId}/refresh", s.refreshSource) // POST /api/sources/{sourceId}/refresh
+		r.Get("/sources", s.listAllSources)
+		r.Get("/sources/{sourceId}", s.getSource)
+		r.Delete("/sources/{sourceId}", s.deleteSource)
+		r.Post("/sources/{sourceId}/refresh", s.refreshSource)
 
 		// Media files (different content type)
 		r.Get("/media/{filename}", s.serveMedia)
