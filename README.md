@@ -1,8 +1,8 @@
 # ListenBucket
 
-[![CI](https://github.com/listenbucket/listenbucket/actions/workflows/ci.yml/badge.svg)](https://github.com/listenbucket/listenbucket/actions/workflows/ci.yml)
-[![Release](https://github.com/listenbucket/listenbucket/actions/workflows/release.yml/badge.svg)](https://github.com/listenbucket/listenbucket/actions/workflows/release.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/listenbucket/listenbucket)](https://goreportcard.com/report/github.com/listenbucket/listenbucket)
+[![CI](https://github.com/chrisg32/ListenBucket/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisg32/ListenBucket/actions/workflows/ci.yml)
+[![Release](https://github.com/chrisg32/ListenBucket/actions/workflows/release.yml/badge.svg)](https://github.com/chrisg32/ListenBucket/actions/workflows/release.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/chrisg32/ListenBucket)](https://goreportcard.com/report/github.com/chrisg32/ListenBucket)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Create podcast feeds from any video source.** A personal format-shifting tool for audio content. ListenBucket extracts audio from online videos and creates personal podcast feeds, allowing you to listen to content in your preferred podcast app.
@@ -42,7 +42,7 @@ docker run -d \
 Or with Docker Compose:
 
 ```bash
-curl -O https://raw.githubusercontent.com/theonecalledchris/listenbucket/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/chrisg32/ListenBucket/main/docker-compose.yml
 docker-compose up -d
 ```
 
@@ -50,7 +50,15 @@ Access the app at **http://localhost:8080**
 
 ### CasaOS
 
-Install directly from Docker Hub or use the included `docker-compose.casaos.yml`.
+1. Open the CasaOS web interface
+2. Click the **+** button to add a new app
+3. Select **Install a customized app**
+4. Choose **Import** and select `docker-compose`
+5. Paste the contents of [`docker-compose.casaos.yml`](docker-compose.casaos.yml)
+6. **Important:** Edit `BASE_URL` to match your CasaOS server's IP address
+7. Click **Submit**
+
+Data is stored in `/DATA/AppData/listenbucket/`.
 
 ## Configuration
 
@@ -80,8 +88,8 @@ Install directly from Docker Hub or use the included `docker-compose.casaos.yml`
 
 ```bash
 # Clone the repository
-git clone https://github.com/listenbucket/listenbucket.git
-cd listenbucket
+git clone https://github.com/chrisg32/ListenBucket.git
+cd ListenBucket
 
 # Install dependencies
 make deps
