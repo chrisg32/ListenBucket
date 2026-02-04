@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/listenbucket/listenbucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/database"
 )
 
 // CreateEpisodeRequest represents the request body for creating an episode

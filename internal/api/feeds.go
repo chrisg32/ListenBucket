@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/listenbucket/listenbucket/internal/database"
-	"github.com/listenbucket/listenbucket/internal/podcast"
+	"github.com/chrisg32/ListenBucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/podcast"
 )
 
 // CreateFeedRequest represents the request body for creating a feed

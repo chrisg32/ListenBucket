@@ -1,4 +1,4 @@
-module github.com/listenbucket/listenbucket
+module github.com/chrisg32/ListenBucket
 
 go 1.22
 

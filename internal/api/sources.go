@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/listenbucket/listenbucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/database"
 )
 
 // CreateSourceRequest represents the request body for adding a source

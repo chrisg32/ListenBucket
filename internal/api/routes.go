@@ -10,10 +10,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/listenbucket/listenbucket/internal/assets"
-	"github.com/listenbucket/listenbucket/internal/config"
-	"github.com/listenbucket/listenbucket/internal/database"
-	"github.com/listenbucket/listenbucket/internal/downloader"
+	"github.com/chrisg32/ListenBucket/internal/assets"
+	"github.com/chrisg32/ListenBucket/internal/config"
+	"github.com/chrisg32/ListenBucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/downloader"
 )
 
 type Server struct {

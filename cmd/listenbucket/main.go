@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	listenbucket "github.com/listenbucket/listenbucket"
-	"github.com/listenbucket/listenbucket/internal/api"
-	"github.com/listenbucket/listenbucket/internal/config"
-	"github.com/listenbucket/listenbucket/internal/database"
-	"github.com/listenbucket/listenbucket/internal/downloader"
+	listenbucket "github.com/chrisg32/ListenBucket"
+	"github.com/chrisg32/ListenBucket/internal/api"
+	"github.com/chrisg32/ListenBucket/internal/config"
+	"github.com/chrisg32/ListenBucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/downloader"
 )
 
 func main() {

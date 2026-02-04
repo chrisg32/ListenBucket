@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/listenbucket/listenbucket/internal/database"
+	"github.com/chrisg32/ListenBucket/internal/database"
 )
 
 type Downloader struct {
