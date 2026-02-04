@@ -4,6 +4,10 @@
 [![Release](https://github.com/chrisg32/ListenBucket/actions/workflows/release.yml/badge.svg)](https://github.com/chrisg32/ListenBucket/actions/workflows/release.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/chrisg32/ListenBucket)](https://goreportcard.com/report/github.com/chrisg32/ListenBucket)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Docker Stars](https://img.shields.io/docker/stars/theonecalledchris/listenbucket)
+![Docker Image Version](https://img.shields.io/docker/v/theonecalledchris/listenbucket)
+![Docker Image Size](https://img.shields.io/docker/image-size/theonecalledchris/listenbucket)
+
 
 **Create podcast feeds from any video source.** A personal format-shifting tool for audio content. ListenBucket extracts audio from online videos and creates personal podcast feeds, allowing you to listen to content in your preferred podcast app.
 
