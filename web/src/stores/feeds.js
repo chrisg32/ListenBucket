@@ -146,6 +146,56 @@ export const useFeedsStore = defineStore('feeds', () => {
     }
   }
 
+  async function uploadFile(feedId, file, title, description, onProgress) {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      if (title) formData.append('title', title)
+      if (description) formData.append('description', description)
+
+      // Use XMLHttpRequest for progress tracking
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable && onProgress) {
+            const percent = Math.round((event.loaded / event.total) * 100)
+            onProgress(percent)
+          }
+        })
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const newEpisode = JSON.parse(xhr.responseText)
+            episodes.value.unshift(newEpisode)
+            resolve(newEpisode)
+          } else {
+            let errorMsg = 'Failed to upload file'
+            try {
+              const errData = JSON.parse(xhr.responseText)
+              errorMsg = errData.message || errData.error || errorMsg
+            } catch (e) {
+              // Ignore parse error
+            }
+            error.value = errorMsg
+            reject(new Error(errorMsg))
+          }
+        })
+
+        xhr.addEventListener('error', () => {
+          error.value = 'Network error during upload'
+          reject(new Error('Network error during upload'))
+        })
+
+        xhr.open('POST', `/api/feeds/${feedId}/episodes/upload`)
+        xhr.send(formData)
+      })
+    } catch (e) {
+      error.value = e.message
+      throw e
+    }
+  }
+
   return {
     feeds,
     currentFeed,
@@ -162,5 +212,6 @@ export const useFeedsStore = defineStore('feeds', () => {
     fetchSources,
     addSource,
     deleteSource,
+    uploadFile,
   }
 })

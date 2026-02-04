@@ -51,3 +51,18 @@ const (
 	SourceTypePlaylist = "playlist"
 	SourceTypeChannel  = "channel"
 )
+
+type User struct {
+	ID           string    `json:"id"`
+	Username     string    `json:"username"`
+	PasswordHash string    `json:"-"` // Never serialize password hash
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type Session struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
+}

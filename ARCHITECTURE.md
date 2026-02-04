@@ -65,6 +65,13 @@ ListenBucket is a web application that converts YouTube videos, playlists, and c
 - `episodes` - Individual podcast episodes
 - `sources` - YouTube videos/playlists/channels linked to feeds
 
+**Migrations:**
+- Uses `golang-migrate/migrate` for versioned schema migrations
+- Migration files in `internal/database/migrations/` (embedded via `go:embed`)
+- Migrations run automatically on startup
+- Version tracking in `schema_migrations` table
+- Supports both up and down migrations for rollbacks
+
 ## Project Structure
 
 ```
@@ -77,11 +84,13 @@ ListenBucket is a web application that converts YouTube videos, playlists, and c
 │   │   ├── feeds.go           # Feed CRUD handlers
 │   │   ├── episodes.go        # Episode handlers
 │   │   └── sources.go         # Source handlers
-│   ├── assets/                # Embedded assets (logo)
+│   ├── assets/                # Embedded assets (logo via go:embed)
 │   ├── config/                # Configuration loading
 │   ├── database/              # SQLite database layer
 │   │   ├── db.go              # Database operations
-│   │   └── models.go          # Data models
+│   │   ├── models.go          # Data models
+│   │   ├── migrations.go      # Embedded migrations
+│   │   └── migrations/        # SQL migration files
 │   ├── downloader/            # yt-dlp integration
 │   │   └── ytdlp.go           # Download and extraction logic
 │   └── podcast/               # RSS feed generation
@@ -96,7 +105,11 @@ ListenBucket is a web application that converts YouTube videos, playlists, and c
 │   └── package.json
 ├── Dockerfile                 # Multi-stage Docker build
 ├── docker-compose.yml
-└── Makefile
+├── docker-compose.casaos.yml  # CasaOS-specific config
+├── Makefile
+└── .github/workflows/         # CI/CD automation
+    ├── ci.yml                 # Test, lint, and build
+    └── release.yml            # Docker image publishing
 ```
 
 ## Key Workflows
@@ -104,11 +117,14 @@ ListenBucket is a web application that converts YouTube videos, playlists, and c
 ### Adding a Source
 
 1. User submits YouTube URL via frontend
-2. Backend detects source type (video/playlist/channel)
-3. yt-dlp fetches metadata (title, thumbnail, video list)
-4. Source record created in database
-5. For videos: Episode created immediately
-6. For playlists/channels: All videos added as episodes (if `include_back_catalog` is true)
+2. User optionally enables "Include back catalog" for playlists/channels
+3. Backend detects source type (video/playlist/channel)
+4. yt-dlp fetches metadata (title, thumbnail, video list)
+5. Source record created in database
+6. For videos: Episode created immediately
+7. For playlists/channels:
+   - If `include_back_catalog` is true: All existing videos added as episodes
+   - If false: Only new videos added going forward
 
 ### Episode Download
 
@@ -141,6 +157,7 @@ RESTful API with JSON responses:
 - `GET/PUT/DELETE /api/feeds/{id}` - Feed CRUD
 - `GET /api/feeds/{id}/rss` - RSS feed
 - `GET/POST /api/feeds/{id}/episodes` - Feed episodes
+- `POST /api/feeds/{id}/episodes/upload` - Upload audio/video file (multipart form)
 - `GET/POST /api/feeds/{id}/sources` - Feed sources
 - `GET/PUT/DELETE /api/episodes/{id}` - Episode CRUD
 - `GET/DELETE /api/sources/{id}` - Source CRUD
@@ -149,20 +166,26 @@ RESTful API with JSON responses:
 
 ### State Management (Pinia)
 - `feeds` store manages all feed, episode, and source data
+- `auth` store manages authentication state and user info
 - API calls centralized in store actions
 - Reactive updates when data changes
 
 ### Routing (Vue Router)
-- `/` - Home (feed list)
-- `/feed/:id` - Feed details with tabs for episodes/sources
+- `/` - Home (feed list) - requires auth
+- `/feed/:id` - Feed details with tabs for episodes/sources - requires auth
+- `/login` - Login page
+- `/setup` - Initial setup/onboarding page
 
 ### Components
 - `FeedCard` - Feed display on home page
-- `EpisodeCard` - Episode with audio player
-- `SourceCard` - Source with type badge
-- `AudioPlayer` - Custom themed audio player
-- `AddSourceModal` - Modal for adding YouTube URLs
-- `FeedLinks` - RSS/Podcast app links
+- `EpisodeCard` - Episode with embedded audio player
+- `SourceCard` - Source with type badge (video/playlist/channel)
+- `AudioPlayer` - Custom themed audio player with seek, progress bar, and time display
+- `AddSourceModal` - Modal for adding YouTube URLs with "include back catalog" option
+- `UploadFileModal` - Modal for uploading audio/video files with drag-and-drop
+- `CreateFeedModal` - Modal for creating new feeds
+- `FeedLinks` - RSS/Podcast app subscription links
+- `Header` - Navigation bar with theme toggle
 
 ## Docker Build
 
@@ -171,6 +194,19 @@ Multi-stage Dockerfile:
 2. **backend-builder** - Go compiles with embedded frontend
 3. **runtime** - Alpine with yt-dlp and ffmpeg
 
+## CI/CD
+
+GitHub Actions workflows in `.github/workflows/`:
+
+### CI Pipeline (`ci.yml`)
+Runs on push/PR to `main`:
+1. **Test** - Go tests with race detection and coverage (uploaded to Codecov)
+2. **Lint** - golangci-lint for code quality
+3. **Build Docker** - Validates Docker image builds (depends on test/lint)
+
+### Release Pipeline (`release.yml`)
+Publishes Docker images to Docker Hub on releases.
+
 ## Configuration
 
 Environment variables:
@@ -178,11 +214,28 @@ Environment variables:
 - `DATA_DIR` - Database and media storage (default: ./data)
 - `BASE_URL` - Public URL for RSS feeds (default: http://localhost:8080)
 
+## Authentication
+
+Session-based authentication with bcrypt password hashing:
+- Initial setup creates the first user account
+- Cookie-based sessions (30-day expiration)
+- Protected routes require authentication
+- RSS feeds and media files remain public for podcast apps
+
+**Auth Endpoints:**
+- `GET /api/auth/setup-status` - Check if initial setup is required
+- `POST /api/auth/setup` - Create initial user account
+- `POST /api/auth/login` - Authenticate user
+- `POST /api/auth/logout` - Invalidate session
+- `GET /api/auth/me` - Get current user
+
+**Database Tables:**
+- `users` - User accounts with bcrypt-hashed passwords
+- `sessions` - Active sessions with expiration tracking
+
 ## Future Considerations
 
 Features planned but not yet implemented:
-- Direct file/video upload
-- Multiple users with authentication
 - S3/cloud storage for media files
 
 ## Development Guidelines

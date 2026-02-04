@@ -55,43 +55,60 @@ func (s *Server) SetupRoutes(webFS embed.FS) http.Handler {
 	r.Route("/api", func(r chi.Router) {
 		r.Use(jsonContentType)
 
-		// Health check
+		// Health check (public)
 		r.Get("/health", s.healthCheck)
 
-		// Feeds - RESTful CRUD
-		r.Get("/feeds", s.listFeeds)
-		r.Post("/feeds", s.createFeed)
-		r.Get("/feeds/{feedId}", s.getFeed)
-		r.Put("/feeds/{feedId}", s.updateFeed)
-		r.Delete("/feeds/{feedId}", s.deleteFeed)
+		// Auth routes (public)
+		r.Route("/auth", func(r chi.Router) {
+			r.Get("/setup-status", s.getSetupStatus)
+			r.Post("/setup", s.setup)
+			r.Post("/login", s.login)
+			r.Post("/logout", s.logout)
+			r.With(s.authMiddleware).Get("/me", s.me)
+		})
+
+		// RSS feed (public - for podcast apps)
 		r.Get("/feeds/{feedId}/rss", s.getFeedRSS)
 
-		// Episodes nested under feeds
-		r.Get("/feeds/{feedId}/episodes", s.listEpisodes)
-		r.Post("/feeds/{feedId}/episodes", s.createEpisode)
-
-		// Sources nested under feeds
-		r.Get("/feeds/{feedId}/sources", s.listSources)
-		r.Post("/feeds/{feedId}/sources", s.createSource)
-
-		// Episodes - direct access by ID
-		r.Get("/episodes", s.listAllEpisodes)
-		r.Get("/episodes/{episodeId}", s.getEpisode)
-		r.Put("/episodes/{episodeId}", s.updateEpisode)
-		r.Delete("/episodes/{episodeId}", s.deleteEpisode)
-		r.Post("/episodes/{episodeId}/retry", s.retryEpisode)
-
-		// Sources - direct access by ID
-		r.Get("/sources", s.listAllSources)
-		r.Get("/sources/{sourceId}", s.getSource)
-		r.Delete("/sources/{sourceId}", s.deleteSource)
-		r.Post("/sources/{sourceId}/refresh", s.refreshSource)
-
-		// Media files (different content type)
+		// Media files (public - for podcast apps)
 		r.Get("/media/{filename}", s.serveMedia)
 
-		// Logo
+		// Logo (public)
 		r.Get("/logo.png", s.serveLogo)
+
+		// Protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(s.authMiddleware)
+
+			// Feeds - RESTful CRUD
+			r.Get("/feeds", s.listFeeds)
+			r.Post("/feeds", s.createFeed)
+			r.Get("/feeds/{feedId}", s.getFeed)
+			r.Put("/feeds/{feedId}", s.updateFeed)
+			r.Delete("/feeds/{feedId}", s.deleteFeed)
+
+			// Episodes nested under feeds
+			r.Get("/feeds/{feedId}/episodes", s.listEpisodes)
+			r.Post("/feeds/{feedId}/episodes", s.createEpisode)
+			r.Post("/feeds/{feedId}/episodes/upload", s.uploadEpisode)
+
+			// Sources nested under feeds
+			r.Get("/feeds/{feedId}/sources", s.listSources)
+			r.Post("/feeds/{feedId}/sources", s.createSource)
+
+			// Episodes - direct access by ID
+			r.Get("/episodes", s.listAllEpisodes)
+			r.Get("/episodes/{episodeId}", s.getEpisode)
+			r.Put("/episodes/{episodeId}", s.updateEpisode)
+			r.Delete("/episodes/{episodeId}", s.deleteEpisode)
+			r.Post("/episodes/{episodeId}/retry", s.retryEpisode)
+
+			// Sources - direct access by ID
+			r.Get("/sources", s.listAllSources)
+			r.Get("/sources/{sourceId}", s.getSource)
+			r.Delete("/sources/{sourceId}", s.deleteSource)
+			r.Post("/sources/{sourceId}/refresh", s.refreshSource)
+		})
 	})
 
 	// Serve static files from embedded filesystem

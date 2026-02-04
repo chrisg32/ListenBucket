@@ -377,6 +377,40 @@ func (d *Downloader) updateFeedImageIfNeeded(feedID, imageURL string) {
 	}
 }
 
+// ConvertToMP3 converts an audio/video file to MP3 using ffmpeg
+func (d *Downloader) ConvertToMP3(inputPath, episodeID string) (string, int, error) {
+	outputPath := filepath.Join(d.mediaDir, episodeID+".mp3")
+
+	// Use ffmpeg to convert to MP3
+	cmd := exec.Command("ffmpeg",
+		"-i", inputPath,
+		"-vn",              // No video
+		"-acodec", "libmp3lame",
+		"-ab", "192k",      // Bitrate
+		"-ar", "44100",     // Sample rate
+		"-y",               // Overwrite output
+		outputPath,
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", 0, fmt.Errorf("ffmpeg conversion failed: %w, output: %s", err, string(output))
+	}
+
+	// Get duration
+	duration := d.getDuration(outputPath)
+
+	// Build audio URL
+	audioURL := fmt.Sprintf("%s/api/media/%s.mp3", d.baseURL, episodeID)
+
+	return audioURL, duration, nil
+}
+
+// GetMediaDir returns the media directory path
+func (d *Downloader) GetMediaDir() string {
+	return d.mediaDir
+}
+
 // RefreshSource manually triggers a check for new content from a source
 func (d *Downloader) RefreshSource(src *database.Source) {
 	log.Printf("Manually refreshing source: %s (%s)", src.Title, src.URL)

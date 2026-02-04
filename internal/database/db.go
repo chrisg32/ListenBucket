@@ -2,9 +2,13 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/google/uuid"
 	_ "modernc.org/sqlite"
 )
@@ -42,53 +46,30 @@ func (db *DB) Close() error {
 }
 
 func (db *DB) migrate() error {
-	schema := `
-	CREATE TABLE IF NOT EXISTS feeds (
-		id TEXT PRIMARY KEY,
-		title TEXT NOT NULL,
-		description TEXT DEFAULT '',
-		image_url TEXT DEFAULT '',
-		is_default INTEGER DEFAULT 0,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
+	// Create migration source from embedded files
+	source, err := iofs.New(migrationsFS, "migrations")
+	if err != nil {
+		return fmt.Errorf("failed to create migration source: %w", err)
+	}
 
-	CREATE TABLE IF NOT EXISTS episodes (
-		id TEXT PRIMARY KEY,
-		feed_id TEXT NOT NULL,
-		source_id TEXT DEFAULT '',
-		title TEXT NOT NULL,
-		description TEXT DEFAULT '',
-		image_url TEXT DEFAULT '',
-		audio_url TEXT DEFAULT '',
-		duration INTEGER DEFAULT 0,
-		source_url TEXT DEFAULT '',
-		status TEXT DEFAULT 'pending',
-		error_msg TEXT DEFAULT '',
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE
-	);
+	// Create database driver for migrations
+	driver, err := sqlite.WithInstance(db.conn, &sqlite.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create migration driver: %w", err)
+	}
 
-	CREATE TABLE IF NOT EXISTS sources (
-		id TEXT PRIMARY KEY,
-		feed_id TEXT NOT NULL,
-		url TEXT NOT NULL,
-		type TEXT DEFAULT 'video',
-		title TEXT DEFAULT '',
-		image_url TEXT DEFAULT '',
-		include_back_catalog INTEGER DEFAULT 1,
-		last_checked DATETIME,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE
-	);
+	// Create migrate instance
+	m, err := migrate.NewWithInstance("iofs", source, "sqlite", driver)
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
 
-	CREATE INDEX IF NOT EXISTS idx_episodes_feed_id ON episodes(feed_id);
-	CREATE INDEX IF NOT EXISTS idx_episodes_status ON episodes(status);
-	CREATE INDEX IF NOT EXISTS idx_sources_feed_id ON sources(feed_id);
-	`
+	// Run migrations
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
 
-	_, err := db.conn.Exec(schema)
-	return err
+	return nil
 }
 
 func (db *DB) ensureDefaultFeed() error {
@@ -476,4 +457,114 @@ func (db *DB) GetSource(id string) (*Source, error) {
 		s.LastChecked = lastChecked.Time
 	}
 	return &s, nil
+}
+
+// User operations
+
+// GetUserCount returns the total number of users
+func (db *DB) GetUserCount() (int, error) {
+	var count int
+	err := db.conn.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	return count, err
+}
+
+// GetUserByUsername returns a user by username
+func (db *DB) GetUserByUsername(username string) (*User, error) {
+	var u User
+	err := db.conn.QueryRow(
+		"SELECT id, username, password_hash, created_at, updated_at FROM users WHERE username = ?",
+		username,
+	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// GetUserByID returns a user by ID
+func (db *DB) GetUserByID(id string) (*User, error) {
+	var u User
+	err := db.conn.QueryRow(
+		"SELECT id, username, password_hash, created_at, updated_at FROM users WHERE id = ?",
+		id,
+	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// CreateUser creates a new user
+func (db *DB) CreateUser(username, passwordHash string) (*User, error) {
+	u := User{
+		ID:           uuid.New().String(),
+		Username:     username,
+		PasswordHash: passwordHash,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	_, err := db.conn.Exec(
+		"INSERT INTO users (id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		u.ID, u.Username, u.PasswordHash, u.CreatedAt, u.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// Session operations
+
+// CreateSession creates a new session for a user
+func (db *DB) CreateSession(userID string, duration time.Duration) (*Session, error) {
+	s := Session{
+		ID:        uuid.New().String(),
+		UserID:    userID,
+		ExpiresAt: time.Now().Add(duration),
+		CreatedAt: time.Now(),
+	}
+
+	_, err := db.conn.Exec(
+		"INSERT INTO sessions (id, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)",
+		s.ID, s.UserID, s.ExpiresAt, s.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// GetSession returns a session by ID if it hasn't expired
+func (db *DB) GetSession(id string) (*Session, error) {
+	var s Session
+	err := db.conn.QueryRow(
+		"SELECT id, user_id, expires_at, created_at FROM sessions WHERE id = ? AND expires_at > datetime('now')",
+		id,
+	).Scan(&s.ID, &s.UserID, &s.ExpiresAt, &s.CreatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// DeleteSession deletes a session
+func (db *DB) DeleteSession(id string) error {
+	_, err := db.conn.Exec("DELETE FROM sessions WHERE id = ?", id)
+	return err
+}
+
+// DeleteExpiredSessions removes all expired sessions
+func (db *DB) DeleteExpiredSessions() error {
+	_, err := db.conn.Exec("DELETE FROM sessions WHERE expires_at <= datetime('now')")
+	return err
 }

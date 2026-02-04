@@ -5,6 +5,7 @@ import { useFeedsStore } from '../stores/feeds'
 import EpisodeCard from '../components/EpisodeCard.vue'
 import SourceCard from '../components/SourceCard.vue'
 import AddSourceModal from '../components/AddSourceModal.vue'
+import UploadFileModal from '../components/UploadFileModal.vue'
 import FeedLinks from '../components/FeedLinks.vue'
 
 const route = useRoute()
@@ -12,6 +13,9 @@ const store = useFeedsStore()
 const activeTab = ref('episodes')
 const showAddSource = ref(false)
 const addingSource = ref(false)
+const showUpload = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 
 const feedId = computed(() => route.params.id)
 
@@ -70,6 +74,22 @@ async function handleDeleteEpisode(id) {
 function refreshData() {
   store.fetchEpisodes(feedId.value)
 }
+
+async function handleUpload(file, title, description) {
+  uploading.value = true
+  uploadProgress.value = 0
+  try {
+    await store.uploadFile(feedId.value, file, title, description, (progress) => {
+      uploadProgress.value = progress
+    })
+    showUpload.value = false
+  } catch (e) {
+    alert(e.message)
+  } finally {
+    uploading.value = false
+    uploadProgress.value = 0
+  }
+}
 </script>
 
 <template>
@@ -127,7 +147,13 @@ function refreshData() {
 
     <!-- Episodes Tab -->
     <div v-if="activeTab === 'episodes'">
-      <div class="flex justify-end mb-4">
+      <div class="flex justify-end gap-2 mb-4">
+        <button @click="showUpload = true" class="btn btn-primary text-sm">
+          <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          Upload File
+        </button>
         <button @click="refreshData" class="btn btn-secondary text-sm">
           <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -194,6 +220,14 @@ function refreshData() {
       :loading="addingSource"
       @close="showAddSource = false"
       @add="handleAddSource"
+    />
+
+    <UploadFileModal
+      v-if="showUpload"
+      :loading="uploading"
+      :progress="uploadProgress"
+      @close="showUpload = false"
+      @upload="handleUpload"
     />
   </div>
 

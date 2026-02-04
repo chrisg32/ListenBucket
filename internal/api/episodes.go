@@ -2,14 +2,37 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/chrisg32/ListenBucket/internal/database"
 )
+
+// Supported audio/video file extensions that ffmpeg can convert to MP3
+var supportedExtensions = map[string]bool{
+	".mp3":  true,
+	".mp4":  true,
+	".m4a":  true,
+	".m4v":  true,
+	".mov":  true,
+	".avi":  true,
+	".mkv":  true,
+	".webm": true,
+	".ogg":  true,
+	".oga":  true,
+	".opus": true,
+	".flac": true,
+	".wav":  true,
+	".wma":  true,
+	".aac":  true,
+	".3gp":  true,
+	".flv":  true,
+}
 
 // CreateEpisodeRequest represents the request body for creating an episode
 type CreateEpisodeRequest struct {
@@ -242,6 +265,104 @@ func (s *Server) retryEpisode(w http.ResponseWriter, r *http.Request) {
 	// Return updated episode
 	updated, _ := s.db.GetEpisode(id)
 	json.NewEncoder(w).Encode(updated)
+}
+
+// uploadEpisode handles file uploads and creates an episode
+// POST /api/feeds/{feedId}/episodes/upload
+func (s *Server) uploadEpisode(w http.ResponseWriter, r *http.Request) {
+	feedID := chi.URLParam(r, "feedId")
+
+	// Verify feed exists
+	feed, err := s.db.GetFeed(feedID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+	if feed == nil {
+		writeError(w, http.StatusNotFound, "not_found", "feed not found")
+		return
+	}
+
+	// Parse multipart form (max 500MB)
+	if err := r.ParseMultipartForm(500 << 20); err != nil {
+		writeError(w, http.StatusBadRequest, "parse_error", "failed to parse form: "+err.Error())
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "file_error", "no file provided: "+err.Error())
+		return
+	}
+	defer file.Close()
+
+	// Validate file extension
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if !supportedExtensions[ext] {
+		writeError(w, http.StatusBadRequest, "validation_error", "unsupported file type: "+ext)
+		return
+	}
+
+	// Get title from form or use filename
+	title := r.FormValue("title")
+	if title == "" {
+		title = strings.TrimSuffix(header.Filename, ext)
+	}
+	description := r.FormValue("description")
+
+	// Create episode record first (status: pending)
+	episode, err := s.db.CreateEpisode(feedID, "", title, description, "", "upload://"+header.Filename)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+
+	// Save uploaded file temporarily
+	tempPath := filepath.Join(s.config.MediaDir, "upload_"+episode.ID+ext)
+	if err := os.MkdirAll(s.config.MediaDir, 0755); err != nil {
+		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create media dir")
+		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
+		return
+	}
+
+	tempFile, err := os.Create(tempPath)
+	if err != nil {
+		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to create temp file")
+		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
+		return
+	}
+
+	_, err = io.Copy(tempFile, file)
+	tempFile.Close()
+	if err != nil {
+		os.Remove(tempPath)
+		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, "failed to save file")
+		writeError(w, http.StatusInternalServerError, "filesystem_error", err.Error())
+		return
+	}
+
+	// Convert to MP3 using ffmpeg
+	s.db.UpdateEpisodeStatus(episode.ID, database.StatusDownloading, "")
+	audioURL, duration, err := s.downloader.ConvertToMP3(tempPath, episode.ID)
+
+	// Clean up temp file
+	os.Remove(tempPath)
+
+	if err != nil {
+		s.db.UpdateEpisodeStatus(episode.ID, database.StatusError, err.Error())
+		writeError(w, http.StatusInternalServerError, "conversion_error", err.Error())
+		return
+	}
+
+	// Update episode with audio info
+	if err := s.db.UpdateEpisodeAudio(episode.ID, audioURL, duration); err != nil {
+		writeError(w, http.StatusInternalServerError, "database_error", err.Error())
+		return
+	}
+
+	// Return updated episode
+	updated, _ := s.db.GetEpisode(episode.ID)
+	writeJSON(w, http.StatusCreated, updated)
 }
 
 // serveMedia serves media files

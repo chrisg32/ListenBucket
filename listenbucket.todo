@@ -1,4 +1,5 @@
 //AI: Do not do any tasks tagged @human
+//AI: Always keep ARCHITECTURE.md up to date with all changes
 Tasks:
   ✔ Change the license from MIT to Apache-2.0. @ai @done
     Updated LICENSE file to Apache 2.0, updated README badge and license section
