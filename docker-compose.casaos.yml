@@ -50,7 +50,7 @@ services:
       # This URL is used in RSS feeds for podcast apps to find your media files
       - BASE_URL=http://your-casaos-ip:8080
     labels:
-      icon: https://github.com/chrisg32/ListenBucket/blob/main/listen-later.png?raw=true
+      icon: https://raw.githubusercontent.com/chrisg32/ListenBucket/main/listen-later.png
       traefik.enable: "false"
 
 # CasaOS App Store metadata (for custom app stores)
@@ -64,7 +64,7 @@ x-casaos:
   description:
     en_us: A personal format-shifting tool that extracts audio from online videos and creates podcast feeds for listening in your favorite podcast app.
   developer: ListenBucket
-  icon: https://github.com/chrisg32/ListenBucket/blob/main/listen-later.png?raw=true
+  icon: https://raw.githubusercontent.com/chrisg32/ListenBucket/main/listen-later.png
   index: /
   port_map: "8080"
   scheme: http
