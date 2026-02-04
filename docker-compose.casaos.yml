@@ -1,23 +1,56 @@
-# CasaOS-compatible docker-compose file
-# To use: Save as docker-compose.yml in your CasaOS app directory
+# CasaOS Installation Instructions for ListenBucket
+# ================================================
+#
+# CasaOS stores app data in: /DATA/AppData/<app-name>/
+# Custom apps can be installed via the CasaOS web UI.
+#
+# INSTALLATION METHOD 1: Via CasaOS Web UI (Recommended)
+# ------------------------------------------------------
+# 1. Open CasaOS web interface (usually http://your-ip:80)
+# 2. Click the "+" button to add a new app
+# 3. Select "Install a customized app" or "Custom Install"
+# 4. Choose "Docker Compose" and paste the contents below (starting from "version:")
+# 5. Click "Install" or "Submit"
+# 6. Access ListenBucket at http://your-casaos-ip:8080
+#
+# INSTALLATION METHOD 2: Via Command Line
+# ---------------------------------------
+# 1. SSH into your CasaOS server
+# 2. Create the app directory:
+#      mkdir -p /DATA/AppData/listenbucket
+# 3. Save this file:
+#      curl -o /DATA/AppData/listenbucket/docker-compose.yml \
+#        https://raw.githubusercontent.com/theonecalledchris/listenbucket/main/docker-compose.casaos.yml
+# 4. Edit BASE_URL to match your server's IP:
+#      nano /DATA/AppData/listenbucket/docker-compose.yml
+# 5. Start the container:
+#      cd /DATA/AppData/listenbucket && docker-compose up -d
+#
+# IMPORTANT: Update BASE_URL below to your CasaOS server's IP address
+# for RSS feeds to work correctly with podcast apps.
+#
+# ================================================
 
 version: '3.8'
 
 services:
   listenbucket:
-    image: listenbucket:latest
+    image: theonecalledchris/listenbucket:latest
     container_name: listenbucket
     restart: unless-stopped
     ports:
       - "8080:8080"
     volumes:
+      # CasaOS standard app data location
       - /DATA/AppData/listenbucket:/data
     environment:
       - PORT=8080
       - DATA_DIR=/data
+      # IMPORTANT: Change this to your CasaOS server's IP or hostname
+      # This URL is used in RSS feeds for podcast apps to find your media files
       - BASE_URL=http://your-casaos-ip:8080
     labels:
-      icon: https://raw.githubusercontent.com/listenbucket/listenbucket/main/web/public/favicon.svg
+      icon: https://raw.githubusercontent.com/theonecalledchris/listenbucket/main/listen-later.png
       traefik.enable: "false"
 
 # CasaOS App Store metadata (for custom app stores)
@@ -29,9 +62,9 @@ x-casaos:
   author: ListenBucket
   category: Media
   description:
-    en_us: Convert YouTube videos, playlists, and channels into podcast feeds
+    en_us: A personal format-shifting tool that extracts audio from online videos and creates podcast feeds for listening in your favorite podcast app.
   developer: ListenBucket
-  icon: https://raw.githubusercontent.com/listenbucket/listenbucket/main/web/public/favicon.svg
+  icon: https://raw.githubusercontent.com/theonecalledchris/listenbucket/main/listen-later.png
   index: /
   port_map: "8080"
   scheme: http
