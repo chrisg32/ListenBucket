@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run ListenBucket" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="listenbucket" />
+    <working_directory value="$PROJECT_DIR$" />
+    <kind value="PACKAGE" />
+    <package value="github.com/listenbucket/listenbucket/cmd/listenbucket" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/listenbucket/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
