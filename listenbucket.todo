@@ -14,4 +14,6 @@ Tasks:
     ✘ Cloud mirroring - will upload feed contents (xml + mp3s) to a cloud provider and use the external cloud provider link for opening in podcast apps, easy way to get around firewalls @cancelled (26-02-02 21:52)
       ✘ S3 bucket mirror @cancelled (26-02-02 21:52)
    ☐ Create a data migration strategy... the app needs to be able to be updated in place. New versions should be compatible with older databases and "upgrade/migrate" the database as needed. Use an existing, maintained, tools or packages to do this if possible rather than reinventing the wheel. Ask me to confirm the strategy before implementing. @ai @critical
+   ☐ Update the ARCHITECTURE.md with any new information that would be helpful to an AI based on the changes made to the app in the last 4 days @ai
    ☐ Open a PR to add to casaos store casa_os_todo.md https://github.com/IceWhaleTech/CasaOS-AppStore/blob/main/CONTRIBUTING.md @human
+   ☐ Remove any and all references to listenbox anywhere in the repo @ai
