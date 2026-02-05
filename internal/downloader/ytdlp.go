@@ -372,6 +372,11 @@ func (d *Downloader) updateFeedImageIfNeeded(feedID, imageURL string) {
 		return
 	}
 
+	// Never update the default feed (Listen Later) image - it should always use the logo
+	if feed.IsDefault {
+		return
+	}
+
 	if feed.ImageURL == "" {
 		_ = d.db.UpdateFeedImage(feedID, imageURL)
 	}
